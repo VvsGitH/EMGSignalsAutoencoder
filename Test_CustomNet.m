@@ -70,7 +70,7 @@ fprintf('Training...\n');
 %     end
 % end 
 
-save('CustomAutoencoder7n.mat','trNet');
+save('CustomAutoencoder7n.mat','trNet','tr');
 
 %% SIMULATION
 fprintf('Training Complete\nSimulation...\n');

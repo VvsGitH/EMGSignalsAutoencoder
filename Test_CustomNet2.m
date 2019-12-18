@@ -5,20 +5,21 @@ clearvars
 %% SETTING UP
 fprintf('Loading Data...\n');
 load TrainDataSet
-nsogg = 40;
+nsogg = 30;
 X = EMG_train(1:12*nsogg);
-X2 = FORCE_train(1:6*nsogg);
+X2 = FORCE_train(1:12*nsogg);
+T = [X; X2];
 
 % Generating data for the Composite Multicore training
 pool = gcp;
 Xc = Composite(); X2c = Composite(); Tc = Composite();
 L = size(X,2)/pool.NumWorkers;
-M = size(X2,2)/pool.NumWorkers;
-Xc{1} = X(1:L); X2c{1} = X2(1:M); Tc{1} = [X(1:L); X2(1:M)];
+M = size(X2,2)/pool.NumWorkers; %NB: L must be equal to M
+Xc{1} = X(1:L); X2c{1} = X2(1:M); Tc{1} = T(:,1:L);
 for i = 1:pool.NumWorkers-1
     Xc{i+1} = X(L*i+1:L*i+L);
     X2c{i+1} = X2(M*i+1:M*i+M);
-    Tc{i+1} = [X(L*i+1:L*i+L); X2(M*i+1:M*i+M)]; 
+    Tc{i+1} = T(:,L*i+1:L*i+L); 
 end
 clearvars -except Xc X2c Tc
 
@@ -88,10 +89,10 @@ view(net)
 fprintf('Training...\n');
 
 % Train net with Composite Data with Multicore
-[trNet, tr] = train(net,Xc,Tc); 
+[trNet, tr] = train(net,Xc,Tc,'showResources','yes'); 
 
 % Saving
-save('CustomDoubleAutoencoder7n.mat','trNet');
+save('CustomDoubleAutoencoder7n.mat','trNet', 'tr');
 
 %% SIMULATION
 fprintf('Training Complete\nSimulation...\n');
@@ -99,20 +100,19 @@ load TestDataSet
 XRecos = trNet(EMG_test);
 
 %% PLOTTING
-% fprintf('Plotting the comparison for one movement...\n');
-% t1 = 1:1:size(EMG_test{1},2);
-% t2 = 1:1:size(XRecos{1},2);
-% for j = 1:5
-%     sogg = j;
-%     mov = 1;
-%     rip = 1;
-%     position = (sogg-1)*12 + (mov-1)*3 + rip;
-%     figure(j);
-%     for i = 1:12
-%         subplot(4,3,i)
-%         plot(t1,EMG_test{position}(i,:),'b');
-%         hold on 
-%         plot(t2,XRecos{position}(i,:),'r');
-%     end
-% end
+fprintf('Plotting the comparison for one movement...\n');
+t = 1:1:size(EMG_test{1},2);
+for j = 1:5
+    sogg = j;
+    mov = 1;
+    rip = 1;
+    position = (sogg-1)*12 + (mov-1)*3 + rip;
+    figure(j);
+    for i = 1:12
+        subplot(4,3,i)
+        plot(t,EMG_test{position}(i,:),'b');
+        hold on 
+        plot(t,XRecos{1,position}(i,:),'r');
+    end
+end
 
