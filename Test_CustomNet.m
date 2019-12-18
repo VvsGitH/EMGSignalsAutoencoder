@@ -57,7 +57,7 @@ fprintf('Training...\n');
 % net = train(net,X,X,'useParallel','yes');
 
 % Train net with Composite Data with Multicore
-net = train(net,Xc,Xc); 
+[trNet, tr] = train(net,Xc,Xc); 
 
 % % Train Net with the GPU - OUT OF MEMORY
 % net = train(net,Xg,Xg,'showResources','yes');
@@ -70,16 +70,16 @@ net = train(net,Xc,Xc);
 %     end
 % end 
 
-save('CustomAutoencoder7n.mat','net');
+save('CustomAutoencoder7n.mat','trNet');
 
 %% SIMULATION
 fprintf('Training Complete\nSimulation...\n');
-XRecos = net(X);
-disp(perform(net,XRecos,X))
+load TestDataSet
+XRecos = trNet(EMG_test);
 
 %% PLOTTING
 fprintf('Plotting the comparison for one movement...\n');
-t1 = 1:1:size(X{1},2);
+t1 = 1:1:size(EMG_test{1},2);
 t2 = 1:1:size(XRecos{1},2);
 for j = 1:5
     sogg = j;
@@ -89,7 +89,7 @@ for j = 1:5
     figure(j);
     for i = 1:12
         subplot(4,3,i)
-        plot(t1,X{position}(i,:),'b');
+        plot(t1,EMG_test{position}(i,:),'b');
         hold on 
         plot(t2,XRecos{position}(i,:),'r');
     end

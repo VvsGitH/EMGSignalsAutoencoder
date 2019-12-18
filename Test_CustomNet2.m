@@ -6,20 +6,31 @@ clearvars
 fprintf('Loading Data...\n');
 load TrainDataSet
 nsogg = 40;
-X1 = EMG_train(1:12*nsogg);
+X = EMG_train(1:12*nsogg);
 X2 = FORCE_train(1:6*nsogg);
 
 % Generating data for the Composite Multicore training
 pool = gcp;
-X1c = Composite(); X2c = Composite();
-L = size(X1,2)/pool.NumWorkers;
+Xc = Composite(); X2c = Composite(); Tc = Composite();
+L = size(X,2)/pool.NumWorkers;
 M = size(X2,2)/pool.NumWorkers;
-X1c{1} = X1(1:L); X2c{1} = X2(1:M);
+Xc{1} = X(1:L); X2c{1} = X2(1:M); Tc{1} = [X(1:L); X2(1:M)];
 for i = 1:pool.NumWorkers-1
-    X1c{i+1} = X1(L*i+1:L*i+L);
+    Xc{i+1} = X(L*i+1:L*i+L);
     X2c{i+1} = X2(M*i+1:M*i+M);
+    Tc{i+1} = [X(L*i+1:L*i+L); X2(M*i+1:M*i+M)]; 
 end
-clearvars -except X1 X2 X1c X2c
+clearvars -except Xc X2c Tc
+
+% Example Data
+% t = 1:0.01:100;
+% for c = 1:10
+%     X{c} = sin(t) + 0.3*randn(1,length(t));
+%     X2{c} = 5*sin(t)./t + 0.3*randn(1,length(t));
+% end
+% T = [X; X2];
+% X_test = sin(t) + 0.4*randn(1,length(t));
+% X2_test = 5*sin(t)./t + 0.4*randn(1,length(t));
 
 %% Network
 net = network;
@@ -58,11 +69,11 @@ net.trainParam.min_grad = 1e-10;
 net.trainParam.max_fail = 5;
 
 % Configuring net for input and output dimensions
-% net = configure(net,'inputs',X1,1);
-% net = configure(net,'outputs',X1,1);
+% net = configure(net,'inputs',X,1);
+% net = configure(net,'outputs',X,1);
 % net = configure(net,'outputs',X2,2);
-net = configure(net,'inputs',X1c{1},1);
-net = configure(net,'outputs',X1c{1},1);
+net = configure(net,'inputs',Xc{1},1);
+net = configure(net,'outputs',Xc{1},1);
 net = configure(net,'outputs',X2c{1},2);
 
 % Set values for labels
@@ -77,9 +88,31 @@ view(net)
 fprintf('Training...\n');
 
 % Train net with Composite Data with Multicore
-net = train(net,X1c,[X1c X2c]); 
+[trNet, tr] = train(net,Xc,Tc); 
+
+% Saving
+save('CustomDoubleAutoencoder7n.mat','trNet');
 
 %% SIMULATION
 fprintf('Training Complete\nSimulation...\n');
-XRecos = net(X1);
-disp(perform(net,XRecos,X1))
+load TestDataSet
+XRecos = trNet(EMG_test);
+
+%% PLOTTING
+% fprintf('Plotting the comparison for one movement...\n');
+% t1 = 1:1:size(EMG_test{1},2);
+% t2 = 1:1:size(XRecos{1},2);
+% for j = 1:5
+%     sogg = j;
+%     mov = 1;
+%     rip = 1;
+%     position = (sogg-1)*12 + (mov-1)*3 + rip;
+%     figure(j);
+%     for i = 1:12
+%         subplot(4,3,i)
+%         plot(t1,EMG_test{position}(i,:),'b');
+%         hold on 
+%         plot(t2,XRecos{position}(i,:),'r');
+%     end
+% end
+
