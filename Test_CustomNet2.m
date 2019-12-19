@@ -40,7 +40,7 @@ net = network;
 % Define topology
 net.numInputs = 1;
 net.numLayers = 3;
-net.biasConnect = [0;0;1];    % Il terzo layer ha un bias % PERCHè???
+net.biasConnect = [0;1;0];    % Il layer d'uscita EMG ha un bias
 net.inputConnect(1,1) = 1;
 net.layerConnect(2,1) = 1;
 net.layerConnect(3,1) = 1;
@@ -74,9 +74,9 @@ net.trainParam.max_fail = 5;
 % net = configure(net,'inputs',X,1);
 % net = configure(net,'outputs',X,1);
 % net = configure(net,'outputs',X2,2);
-net = configure(net,'inputs',Xc{1},1);
-net = configure(net,'outputs',Xc{1},1);
-net = configure(net,'outputs',X2c{1},2);
+% net = configure(net,'inputs',Xc{1},1);
+% net = configure(net,'outputs',Xc{1},1);
+% net = configure(net,'outputs',X2c{1},2);
 
 % Set values for labels
 net.name = 'Autoencoder';
