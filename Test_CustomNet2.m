@@ -99,6 +99,30 @@ fprintf('Training Complete\nSimulation...\n');
 load TestDataSet
 XRecos = trNet(EMG_test);
 
+%% PERFORMANCE
+fprintf('Calculating performance indexes...\n')
+e_emg = gsubtract(EMG_test, XRecos(1,:));
+mse_emg = perform(trNet,EMG_test, XRecos(1,:));
+RMSE_emg = sqrt(mse_emg);
+e_frc = gsubtract(FORCE_test, XRecos(2,:));
+mse_frc = perform(trNet,FORCE_test, XRecos(2,:));
+RMSE_frc = sqrt(mse_frc);
+fprintf('The mse for EMG is: %d\nThe RMSE for EMG is: %d\n',mse_emg,RMSE_emg);
+fprintf('The mse for FORCE is: %d\nThe RMSE for FORCE is: %d\n',mse_frc,RMSE_frc);
+R2_emg = r_squared(EMG_test, XRecos(1,:));
+R2_frc = r_squared(FORCE_test, XRecos(2,:));
+fprintf('The R2 for EMG is: %d\n', R2_emg);
+fprintf('The R2 for FORCE is: %d\n', R2_frc);
+
+% Saving
+performance.mse_emg = mse_emg;
+performance.mse_frc = mse_frc;
+performance.RMSE_emg = RMSE_emg;
+performance.RMSE_frc = RMSE_frc;
+performance.R2_emg = R2_emg;
+performance.R2_frc = R2_frc;
+save('CustomDoubleAutoencoder7n.mat','trNet', 'tr','performance');
+
 %% PLOTTING
 fprintf('Plotting the comparison for one movement...\n');
 t = 1:1:size(EMG_test{1},2);
@@ -116,3 +140,13 @@ for j = 1:5
     end
 end
 
+%% R2 FUNCTION
+function [R2] = r_squared(targets, estimates)
+    T = cell2mat(targets);
+    Y = cell2mat(estimates);
+    avgTargets = mean(T, 2);
+    avgTargetsMatr = avgTargets .*ones(1,size(T,2));
+    numerator = sum(sum((Y - T).^2));   %SSE
+    denominator = sum(sum((T - avgTargetsMatr).^2));  %SST
+    R2 = 1 - (numerator ./ denominator);
+end

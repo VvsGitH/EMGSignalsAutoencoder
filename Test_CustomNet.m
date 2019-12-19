@@ -78,12 +78,19 @@ load TestDataSet
 XRecos = trNet(EMG_test);
 
 %% PERFORMANCE
+fprintf('Calculating performance indexes...\n')
 e = gsubtract(EMG_test, XRecos);
 mse = perform(trNet,EMG_test, XRecos);
 RMSE = sqrt(mse);
 fprintf('The mse is: %d\nThe RMSE is: %d\n',mse,RMSE);
 R2 = r_squared(EMG_test, XRecos);
 fprintf('The R2 is: %d\n', R2);
+
+% Saving
+performance.mse_emg = mse;
+performance.RMSE_emg = RMSE;
+performance.R2_emg = R2;
+save('CustomAutoencoder7n.mat','trNet','performance');
 
 %% PLOTTING
 fprintf('Plotting the comparison for one movement...\n');
