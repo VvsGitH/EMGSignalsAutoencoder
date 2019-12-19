@@ -70,7 +70,7 @@ fprintf('Training...\n');
 %     end
 % end 
 
-save('CustomAutoencoder7n.mat','trNet','tr');
+% save('CustomAutoencoder7n.mat','trNet','tr');
 
 %% SIMULATION
 fprintf('Training Complete\nSimulation...\n');
@@ -90,7 +90,7 @@ fprintf('The R2 is: %d\n', R2);
 performance.mse_emg = mse;
 performance.RMSE_emg = RMSE;
 performance.R2_emg = R2;
-save('CustomAutoencoder7n.mat','trNet','performance');
+save('Autoenc_7n.mat','trNet','performance');
 
 %% PLOTTING
 fprintf('Plotting the comparison for one movement...\n');

@@ -60,7 +60,7 @@ net.initFcn = 'initlay'; % Chiama le funzioni di inizializzazione di ogni layer
 net.layers{1}.size = 7; % Numero di neuroni
 net.layers{1}.transferFcn = 'elliotsig';
 net.layers{2}.transferFcn = 'purelin';
-net.layers{3}.transferFcn = 'purelin';
+net.layers{3}.transferFcn = '';
 net.divideFcn = 'dividetrain'; %Assegna tutti i valori al train
 net.performFcn = 'mse'; % Imposta l'indice di performance come mse      %'msesparse'; % sse
 net.trainFcn = 'trainscg';  % Scalar Conjugate Gradient                  % trainbr, trainscg, traingdm, traingdx
@@ -92,7 +92,7 @@ fprintf('Training...\n');
 [trNet, tr] = train(net,Xc,Tc,'showResources','yes'); 
 
 % Saving
-save('CustomDoubleAutoencoder7n.mat','trNet', 'tr');
+% save('CustomNLDoubleAutoencoder7n.mat','trNet', 'tr');
 
 %% SIMULATION
 fprintf('Training Complete\nSimulation...\n');
@@ -121,24 +121,24 @@ performance.RMSE_emg = RMSE_emg;
 performance.RMSE_frc = RMSE_frc;
 performance.R2_emg = R2_emg;
 performance.R2_frc = R2_frc;
-save('CustomDoubleAutoencoder7n.mat','trNet', 'tr','performance');
+save('AutoencDb_NL_7n.mat','trNet', 'tr','performance');
 
 %% PLOTTING
-fprintf('Plotting the comparison for one movement...\n');
-t = 1:1:size(EMG_test{1},2);
-for j = 1:5
-    sogg = j;
-    mov = 1;
-    rip = 1;
-    position = (sogg-1)*12 + (mov-1)*3 + rip;
-    figure(j);
-    for i = 1:12
-        subplot(4,3,i)
-        plot(t,EMG_test{position}(i,:),'b');
-        hold on 
-        plot(t,XRecos{1,position}(i,:),'r');
-    end
-end
+% fprintf('Plotting the comparison for one movement...\n');
+% t = 1:1:size(EMG_test{1},2);
+% for j = 1:5
+%     sogg = j;
+%     mov = 1;
+%     rip = 1;
+%     position = (sogg-1)*12 + (mov-1)*3 + rip;
+%     figure(j);
+%     for i = 1:12
+%         subplot(4,3,i)
+%         plot(t,EMG_test{position}(i,:),'b');
+%         hold on 
+%         plot(t,XRecos{1,position}(i,:),'r');
+%     end
+% end
 
 %% R2 FUNCTION
 function [R2] = r_squared(targets, estimates)
