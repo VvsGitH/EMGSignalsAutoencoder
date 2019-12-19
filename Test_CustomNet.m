@@ -77,6 +77,14 @@ fprintf('Training Complete\nSimulation...\n');
 load TestDataSet
 XRecos = trNet(EMG_test);
 
+%% PERFORMANCE
+e = gsubtract(EMG_test, XRecos);
+mse = perform(trNet,EMG_test, XRecos);
+RMSE = sqrt(mse);
+fprintf('The mse is: %d\nThe RMSE is: %d\n',mse,RMSE);
+R2 = r_squared(EMG_test, XRecos);
+fprintf('The R2 is: %d\n', R2);
+
 %% PLOTTING
 fprintf('Plotting the comparison for one movement...\n');
 t1 = 1:1:size(EMG_test{1},2);
@@ -93,5 +101,16 @@ for j = 1:5
         hold on 
         plot(t2,XRecos{position}(i,:),'r');
     end
+end
+
+%% R2 FUNCTION
+function [R2] = r_squared(targets, estimates)
+    T = cell2mat(targets);
+    Y = cell2mat(estimates);
+    avgTargets = mean(T, 2);
+    avgTargetsMatr = avgTargets .*ones(1,size(T,2));
+    numerator = sum(sum((Y - T).^2));   %SSE
+    denominator = sum(sum((T - avgTargetsMatr).^2));  %SST
+    R2 = 1 - (numerator ./ denominator);
 end
  
