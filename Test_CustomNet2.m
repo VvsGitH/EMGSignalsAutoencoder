@@ -34,6 +34,7 @@ clearvars -except Xc X2c Tc
 % X2_test = 5*sin(t)./t + 0.4*randn(1,length(t));
 
 %% Network
+fprintf('Configuring Net...\n');
 net = network;
 
 % Define topology
@@ -59,8 +60,8 @@ net.initFcn = 'initlay'; % Chiama le funzioni di inizializzazione di ogni layer
 % Set parameters
 net.layers{1}.size = 7; % Numero di neuroni
 net.layers{1}.transferFcn = 'elliotsig';
-net.layers{2}.transferFcn = 'purelin';
-net.layers{3}.transferFcn = '';
+net.layers{2}.transferFcn = 'poslin';
+net.layers{3}.transferFcn = 'poslin';
 net.divideFcn = 'dividetrain'; %Assegna tutti i valori al train
 net.performFcn = 'mse'; % Imposta l'indice di performance come mse      %'msesparse'; % sse
 net.trainFcn = 'trainscg';  % Scalar Conjugate Gradient                  % trainbr, trainscg, traingdm, traingdx
@@ -95,7 +96,7 @@ fprintf('Training...\n');
 % save('CustomNLDoubleAutoencoder7n.mat','trNet', 'tr');
 
 %% SIMULATION
-fprintf('Training Complete\nSimulation...\n');
+fprintf('Simulation...\n');
 load TestDataSet
 XRecos = trNet(EMG_test);
 
@@ -121,7 +122,7 @@ performance.RMSE_emg = RMSE_emg;
 performance.RMSE_frc = RMSE_frc;
 performance.R2_emg = R2_emg;
 performance.R2_frc = R2_frc;
-save('AutoencDb_NL_7n.mat','trNet', 'tr','performance');
+save('AutoencDb_pos_7n.mat','trNet', 'tr','performance');
 
 %% PLOTTING
 % fprintf('Plotting the comparison for one movement...\n');
