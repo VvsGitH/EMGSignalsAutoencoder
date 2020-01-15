@@ -73,33 +73,39 @@ for s = 1:40
             bph = 500;
             Wn = [bpl/(f/2),bph/(f/2)];
             [b,a] = butter(2,Wn,'bandpass');
-            emgp = filter(b,a,Sbj{s,1}.Mov(m).T(r).emg);
+            emgf = filter(b,a,Sbj{s,1}.Mov(m).T(r).emg);
             
             %% rectification
             % Per renderlo non negativo
-            emgp = abs(emgp);
+            emgfr = abs(emgf);
             
             %% low-pass filtering 2 Hz
             % Smoothing del segnale
             l = 2;
             Wn = l/(f/2);
             [b,a] = butter(2,Wn,'low');
-            emgp1 = filter(b,a,emgp);
+            emgfrl = filter(b,a,emgfr);
             
             %% cross correlation to adjust delay
             % Il filtraggio applica un delay. La cross-correlazione riallinea il
             % segnale filtrato con quello orginale
             t = size(Sbj{s,1}.Mov(m).T(r).emg,1);
             for i = 1:ne
-                [rr,lags] = xcorr(emgp(:,i)',emgp1(:,i)'); %estimate delay
+                [rr,lags] = xcorr(emgfr(:,i)',emgfrl(:,i)'); %estimate delay
                 [~,d] = max(rr);
                 d = t-d;
-                emgp1(:,i) = [emgp1((d+1:t)',i);zeros(d,1)];
+                emgfrl(:,i) = [emgfrl((d+1:t)',i);zeros(d,1)];
             end
             
-            %% normalization between 0 and 1
-            emgp1 = normalize(emgp1,'range');
-            Sbj{s,1}.Mov(m).T(r).emgpp = emgp1;
+            %% normalization
+            % normalization between 0 and 1
+            emgfrln = normalize(emgfrl,2,'range');
+            
+            % z-score normalization
+            %   X = (x - mean(x))/dev_std(x))
+            % emgfrln = normalize(emgfrl, 'zscore');   
+            
+            Sbj{s,1}.Mov(m).T(r).emgpp = emgfrln;
         end
     end
 end
