@@ -11,11 +11,6 @@ for s=1:40
     Sbj{s,1}.restimulus = Sbj{s,1}.restimulus - 40;
 end
 
-%% Constant definition
-% t=length(emg); %length of the emg signal
-f = 2000; %sampling frequency
-ne = 10; %number of electrodes
-
 %% Remove Triceps and Biceps
 for s = 1:40
     Sbj{s,1}.emg(:,12) = [];
@@ -66,7 +61,10 @@ for s = 1:40 % soggetti
 end
 
 %%
+f = 2000; %sampling frequency
+ne = 10; %number of electrodes
 for s = 1:40
+    fprintf('PostProcessing Soggeto: %d\n',s);
     for m = mov
         for r = 1:6
             %% band-pass filtering 20-500 Hz
@@ -91,16 +89,17 @@ for s = 1:40
             %% cross correlation to adjust delay
             % Il filtraggio applica un delay. La cross-correlazione riallinea il
             % segnale filtrato con quello orginale
+            t = size(Sbj{s,1}.Mov(m).T(r).emg,1);
             for i = 1:ne
-                [r,lags] = xcorr(emgp(:,i)',emgp1(:,i)'); %estimate delay
-                [~,d] = max(r);
+                [rr,lags] = xcorr(emgp(:,i)',emgp1(:,i)'); %estimate delay
+                [~,d] = max(rr);
                 d = t-d;
                 emgp1(:,i) = [emgp1((d+1:t)',i);zeros(d,1)];
             end
             
             %% normalization between 0 and 1
             emgp1 = normalize(emgp1,'range');
-            Sbj{s,1}.Mov(m).T(r).emgp = emgp1;
+            Sbj{s,1}.Mov(m).T(r).emgpp = emgp1;
         end
     end
 end
