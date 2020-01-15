@@ -5,7 +5,7 @@ clc
 ttds=tabularTextDatastore('./Daniel & Roberto/DB2','FileExtensions','.mat','NumHeaderLines',129);
 Sbj = cell(40,1);
 for s=1:40
-    fprintf('Carico soggetto %d \n',s)
+    fprintf('Loading Subject %d \n',s)
     filename = string(ttds.Files(s));
     Sbj{s} = load(filename);
     Sbj{s,1}.restimulus = Sbj{s,1}.restimulus - 40;
@@ -31,7 +31,7 @@ mov = [1,2,3,4,7,8];
 
 %% Segmentation of RawData
 for s = 1:40 % soggetti
-    fprintf('Segmento soggetto %d \n',s);
+    fprintf('Segmentation of Subject %d \n',s);
     ind = [];
     z = [];
     for i = mov % Movimenti
@@ -60,11 +60,11 @@ for s = 1:40 % soggetti
     end
 end
 
-%%
+%% Post Processing
 f = 2000; %sampling frequency
 ne = 10; %number of electrodes
 for s = 1:40
-    fprintf('PostProcessing Soggeto: %d\n',s);
+    fprintf('PostProcessing of Subject: %d\n',s);
     for m = mov
         for r = 1:6
             %% band-pass filtering 20-500 Hz
@@ -109,4 +109,39 @@ for s = 1:40
         end
     end
 end
-    
+
+%% Test and Train Dataset Generation
+trainRip = [1 3 5];
+testRip = [2 4 6];
+
+fprintf('Generating Train DataSet\n');
+TrainDataSet = cell(40,1);
+for s = 1:40
+    TrainDataSet{s,1}.emg = [];
+    TrainDataSet{s,1}.force = [];
+    for m = mov
+        for r = trainRip            
+            TrainDataSet{s,1}.emg = [TrainDataSet{s,1}.emg, Sbj{s,1}.Mov(m).T(r).emgpp];
+            TrainDataSet{s,1}.force = [TrainDataSet{s,1}.force, Sbj{s,1}.Mov(m).T(r).force];
+        end
+    end
+end
+
+fprintf('Generating Test DataSet\n');
+TestDataSet = cell(40,1);
+for s = 1:40
+    TestDataSet{s,1}.emg = [];
+    TestDataSet{s,1}.force = [];
+    for m = mov
+        for r = testRip            
+            TestDataSet{s,1}.emg = [TestDataSet{s,1}.emg, Sbj{s,1}.Mov(m).T(r).emgpp];
+            TestDataSet{s,1}.force = [TestDataSet{s,1}.force, Sbj{s,1}.Mov(m).T(r).force];
+        end
+    end
+end
+
+%% Saving Dataset
+save('TrainDataSet.mat', 'TrainDataSet');
+save('TestDataSet.mat', 'TestDataSet');
+
+
