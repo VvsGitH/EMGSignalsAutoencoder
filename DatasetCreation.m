@@ -110,6 +110,18 @@ for s = 1:40
     end
 end
 
+%% Signals Length Analisys
+fprintf('Signal Length Analisys');
+dimVector = [];
+for s = 1:40
+    for m = mov
+        for r = 1:6
+            dimVector = [dimVector, size(Sbj{s,1}.Mov(m).T(r).emgpp,2)]; 
+        end
+    end
+end
+histogram(dimVector);
+
 %% Test and Train Dataset Generation
 trainRip = [1 3 5];
 testRip = [2 4 6];

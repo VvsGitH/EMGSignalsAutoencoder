@@ -5,18 +5,20 @@ clearvars
 %% SETTING UP
 fprintf('Loading Data...\n');
 load TrainDataSet
-nsogg = 40;
-X = EMG_train(1:12*nsogg);
+trSogg = 10;
 
-% Generating data for the Composite Multicore training
-pool = gcp;
-Xc = Composite();
-L = size(X,2)/pool.NumWorkers;
-Xc{1} = X(1:L);
-for i = 1:pool.NumWorkers-1
-    Xc{i+1} = X(L*i+1:L*i+L);
-end
-clearvars -except X Xc
+X = TrainDataSet{trSogg,1}.emg;
+clearvars -except X trSogg
+
+% % Generating data for the Composite Multicore training
+% pool = gcp;
+% Xc = Composite();
+% L = size(X,2)/pool.NumWorkers;
+% Xc{1} = X(1:L);
+% for i = 1:pool.NumWorkers-1
+%     Xc{i+1} = X(L*i+1:L*i+L);
+% end
+% clearvars -except X Xc nsogg
 
 % % Generating GPU arrays for the GPU training
 % Xg = nndata2gpu(X);
@@ -35,7 +37,7 @@ clearvars -except X Xc
 %% CUSTOM NET
 fprintf('Generating Net...\n');
 rng('default')
-hiddenSize = 7;
+hiddenSize = 5;
 net = feedforwardnet(hiddenSize);
 net.name = 'Autoencoder';
 net.layers{1}.name = 'Encoder';
@@ -45,20 +47,23 @@ net.trainFcn = 'trainscg'; %'trainlm': Jacobian - not supported by GPU; % 'train
 net.performFcn = 'mse'; % Mean Square Error
 net.divideFcn = 'dividetrain'; % Assegna tutti i valori al train
 net.layers{1}.transferFcn = 'elliotsig'; %'elliotsig' = n / (1 + abs(n)) - better for GPU; 'tansig' = 2/(1+exp(-2*n))-1
-net.layers{2}.transferFcn = 'poslin';
-net.trainParam.epochs = 100;
-net.trainParam.max_fail = 5;
-% net = configure(net,X,X); % Configure net for the standard Dataset
-%net = configure(net,Xc{1},Xc{1}); % Configure net for the Composite DataSet
+net.layers{2}.transferFcn = 'purelin';
+net.trainParam.epochs = 500;
+net.trainParam.min_grad = 1e-04;
+net = configure(net,X,X); % Configure net for the standard Dataset
+% net = configure(net,Xc{1},Xc{1}); % Configure net for the Composite DataSet
 view(net)
 
 %% TRAINING
 fprintf('Training...\n');
+
+[trNet, tr] = train(net,X,X); 
+
 % % Train Net with Multicore - CRASH
 % net = train(net,X,X,'useParallel','yes');
 
 % Train net with Composite Data with Multicore
-[trNet, tr] = train(net,Xc,Xc); 
+% [trNet, tr] = train(net,Xc,Xc); 
 
 % % Train Net with the GPU - OUT OF MEMORY
 % net = train(net,Xg,Xg,'showResources','yes');
@@ -76,45 +81,42 @@ fprintf('Training...\n');
 %% SIMULATION
 fprintf('Training Complete\nSimulation...\n');
 load TestDataSet
-XRecos = trNet(EMG_test);
+tsSogg = trSogg;
+T = TestDataSet{tsSogg,1}.emg;
+XRecos = trNet(T);
+clearvars -except X T XRecos net trNet tr
 
 %% PERFORMANCE
 fprintf('Calculating performance indexes...\n')
-e = gsubtract(EMG_test, XRecos);
-mse = perform(trNet,EMG_test, XRecos);
+e = gsubtract(T, XRecos);
+mse = perform(trNet,T, XRecos);
 RMSE = sqrt(mse);
 fprintf('The mse is: %d\nThe RMSE is: %d\n',mse,RMSE);
-R2 = r_squared(EMG_test, XRecos);
+R2 = r_squared(T, XRecos);
 fprintf('The R2 is: %d\n', R2);
 
 % Saving
 performance.mse_emg = mse;
 performance.RMSE_emg = RMSE;
 performance.R2_emg = R2;
-save('Autoenc_7n.mat','trNet','performance');
+% save('Autoenc_7n.mat','trNet','performance');
 
 %% PLOTTING
-fprintf('Plotting the comparison for one movement...\n');
-t1 = 1:1:size(EMG_test{1},2);
-t2 = 1:1:size(XRecos{1},2);
-for j = 1:5
-    sogg = j;
-    mov = 1;
-    rip = 1;
-    position = (sogg-1)*12 + (mov-1)*3 + rip;
-    figure(j);
-    for i = 1:12
-        subplot(4,3,i)
-        plot(t1,EMG_test{position}(i,:),'b');
-        hold on 
-        plot(t2,XRecos{position}(i,:),'r');
-    end
+fprintf('Plotting the comparison...\n');
+t1 = 1:1:size(T,2);
+t2 = 1:1:size(XRecos,2);
+for i = 1:10
+    subplot(4,3,i)
+    plot(t1,T(i,:),'b');
+    hold on
+    plot(t2,XRecos(i,:),'r');
 end
+
 
 %% R2 FUNCTION
 function [R2] = r_squared(targets, estimates)
-    T = cell2mat(targets);
-    Y = cell2mat(estimates);
+    T = targets;
+    Y = estimates;
     avgTargets = mean(T, 2);
     avgTargetsMatr = avgTargets .*ones(1,size(T,2));
     numerator = sum(sum((Y - T).^2));   %SSE
