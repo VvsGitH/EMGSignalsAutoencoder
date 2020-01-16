@@ -13,9 +13,10 @@ load TestDataSet
 tsSogg = trSogg;
 T = TestDataSet{tsSogg,1}.emg;
 
-clearvars -except X T trSogg tsSogg
+%% TRAINING/SIMULATION LOOP
 
-MSE = zeros(10,1); RMSE = zeros(10,1); R2 = zeros(10,2); TrainingReport = cell(10,1);
+MSE = zeros(10,1); RMSE = zeros(10,1); R2 = zeros(10,2); 
+trainedNet = cell(10,1); trainingReport = cell(10,1);
 for h = 1:10
     fprintf('      H = %d\n',h);
 %% CUSTOM NET
@@ -36,35 +37,39 @@ net.trainParam.epochs = 1000;
 net.trainParam.min_grad = 1e-07;
 net.trainParam.goal = 1e-05;
 net = configure(net,X,X); % Configure net for the standard Dataset
-%view(net)
 
 %% TRAINING
 fprintf('Training...\n');
-
 [trNet, tr] = train(net,X,X); 
-TrainingReport{h,1} = tr;
 
 %% SIMULATION
 fprintf('Simulation...\n');
 XRecos = trNet(T);
 
-%% PERFORMANCE
+%% PERFORMANCE 
+%%%%%%%%% AGGIUNGERE STIMA DELLA FORZA!!! %%%%%%%%%%%
 fprintf('Calculating performance indexes...\n')
-e = gsubtract(T, XRecos);
 mse = perform(trNet,T, XRecos);
 rmse = sqrt(mse);
 fprintf('  The mse is: %d\n  The RMSE is: %d\n',mse,rmse);
 r2 = r_squared(T, XRecos);
 fprintf('  The R2 is: %d\n', r2);
 
-% Saving
+% Inserting into vectors
+trainedNet{h,1} = trNet;
+trainingReport{h,1} = tr;
 MSE(h) = mse;
 RMSE(h) = rmse;
 R2(h) = r2;
 
-clearvars -except X T trSogg tsSogg MSE RMSE R2 TrainingReport
+clear mse rmse r2 XRecos net
 
 end
+
+%% SAVING
+fprintf('Saving...\n');
+filename = ['AESim_sbj', num2str(trSogg), '_allSizes.mat'];
+save(filename,'MSE', 'RMSE', 'R2', 'trainedNet', 'trainingReport');
 
 %% PLOTTING
 fprintf('Plotting...')
@@ -75,9 +80,6 @@ subplot(3,1,2)
 plot(s,RMSE), title('RMSE');
 subplot(3,1,3)
 plot(s,R2), title('R2');
-
-%% SAVING
-save('Results_sbj10_1000eph.mat','MSE', 'RMSE', 'R2', 'TrainingReport');
 
 
 %% R2 FUNCTION

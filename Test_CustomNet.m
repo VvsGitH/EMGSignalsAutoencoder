@@ -14,8 +14,6 @@ tsSogg = trSogg;
 EMG_Test = TestDataSet{tsSogg,1}.emg;
 FORCE_Test = TestDataSet{tsSogg,1}.force;
 
-clearvars -except EMG_Train EMG_Test FORCE_Train FORCE_Test
-
 % % Generating data for the Composite Multicore training
 % pool = gcp;
 % Xc = Composite();
@@ -59,6 +57,7 @@ net.trainParam.min_grad = 1e-06;
 net.trainParam.goal = 1e-05;
 net = configure(net,EMG_Train,EMG_Train); % Configure net for the standard Dataset
 % net = configure(net,Xc{1},Xc{1}); % Configure net for the Composite DataSet
+
 view(net)
 
 %% TRAINING
@@ -87,8 +86,6 @@ fprintf('Training...\n');
 fprintf('Simulation...\n');
 EMG_Recos = trNet(EMG_Test);
 
-clearvars -except EMG_Train EMG_Test FORCE_Train FORCE_Test EMG_Recos tr trNet
-
 %% FORCE RECONSTRUCTION
 fprintf('Force Reconstruction...\n');
 inputWeigths = cell2mat(trNet.IW);
@@ -116,10 +113,19 @@ fprintf('   The mse is: %d\n   The RMSE is: %d\n',MSE_frc,RMSE_frc);
 R2_frc = r_squared(FORCE_Test, FORCE_Recos);
 fprintf('   The R2 is: %d\n', R2_frc);
 
-% Saving
-performance.mse_emg = MSE_emg;
-performance.RMSE_emg = RMSE_emg;
-performance.R2_emg = R2_emg;
+%% Saving
+fprintf('Saving...\n');
+AEsim.trainedNet = trNet;
+AEsim.trainingReport = tr;
+AEsim.emgToForceMatrix = Hae;
+AEsim.MSE_emg = MSE_emg;
+AEsim.MSE_frc = MSE_frc;
+AEsim.RMSE_emg = RMSE_emg;
+AEsim.RMSE_frc = RMSE_frc;
+AEsim.R2_emg = R2_emg;
+AEsim.R2_frc = R2_frc;
+filename = ['AESim_sbj', num2str(trSogg), '_hn', num2str(hiddenSize), '.mat'];
+save(filename,'AEsim');
 
 %% PLOTTING
 fprintf('Plotting the comparison...\n');

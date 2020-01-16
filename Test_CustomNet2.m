@@ -7,11 +7,10 @@ fprintf('Loading Data...\n');
 load TrainDataSet
 trSogg = 10;
 
-X = TrainDataSet{trSogg,1}.emg;
-X2 = TrainDataSet{trSogg,1}.force;
-X2 = abs(X2);
-X2 = normalize(X2,2,'range');
-clearvars -except X X2 trSogg
+EMG_Train = TrainDataSet{trSogg,1}.emg;
+FORCE_Train = TrainDataSet{trSogg,1}.force;
+FORCE_Train = abs(FORCE_Train);
+FORCE_Train = normalize(FORCE_Train,2,'range');
 
 % % Generating data for the Composite Multicore training
 % pool = gcp;
@@ -36,9 +35,17 @@ clearvars -except X X2 trSogg
 % X_test = sin(t) + 0.4*randn(1,length(t));
 % X2_test = 5*sin(t)./t + 0.4*randn(1,length(t));
 
+load TestDataSet
+tsSogg = trSogg;
+EMG_Test = TestDataSet{tsSogg,1}.emg;
+FORCE_Test = TestDataSet{tsSogg,1}.force;
+FORCE_Test = abs(FORCE_Test);
+FORCE_Test = normalize(FORCE_Test,2,'range');
+
 %% Network
 fprintf('Configuring Net...\n');
 net = network;
+hiddenSize = 7;
 
 % Define topology
 net.numInputs = 1;
@@ -61,22 +68,22 @@ net.biases{2}.initFcn = 'randsmall';
 net.initFcn = 'initlay'; % Chiama le funzioni di inizializzazione di ogni layer
 
 % Set parameters
-net.layers{1}.size = 7; % Numero di neuroni
+net.layers{1}.size = hiddenSize; % Numero di neuroni
 net.layers{1}.transferFcn = 'elliotsig';
 net.layers{2}.transferFcn = 'purelin';
 net.layers{3}.transferFcn = 'purelin';
 net.divideFcn = 'dividetrain'; %Assegna tutti i valori al train
 net.performFcn = 'mse'; % Imposta l'indice di performance come mse      %'msesparse'; % sse
 net.trainFcn = 'trainscg';  % Scalar Conjugate Gradient                  % trainbr, trainscg, traingdm, traingdx
-net.trainParam.epochs = 1000;
+net.trainParam.epochs = 10000;
 net.trainParam.min_grad = 1e-06;
-net.trainParam.goal = 1e-04;
+net.trainParam.goal = 1e-05;
 net.trainParam.max_fail = 5;
 
 % Configuring net for input and output dimensions
-net = configure(net,'inputs',X,1);
-net = configure(net,'outputs',X,1);
-net = configure(net,'outputs',X2,2);
+net = configure(net,'inputs',EMG_Train,1);
+net = configure(net,'outputs',EMG_Train,1);
+net = configure(net,'outputs',FORCE_Train,2);
 % net = configure(net,'inputs',Xc{1},1);
 % net = configure(net,'outputs',Xc{1},1);
 % net = configure(net,'outputs',X2c{1},2);
@@ -92,64 +99,60 @@ view(net)
 %% TRAINING
 fprintf('Training...\n');
 
-[trNet, tr] = train(net,X,[X; X2]); 
+[trNet, tr] = train(net,EMG_Train,[EMG_Train; FORCE_Train]); 
 
 % Train net with Composite Data with Multicore
 % [trNet, tr] = train(net,Xc,Tc,'showResources','yes'); 
 
 %% SIMULATION
 fprintf('Simulation...\n');
-load TestDataSet
-tsSogg = trSogg;
-T = TestDataSet{tsSogg,1}.emg;
-FORCE = TestDataSet{tsSogg,1}.force;
-FORCE = abs(FORCE);
-FORCE = normalize(FORCE,2,'range');
-
-XRecos = trNet(T);
-
-clearvars -except X X2 T FORCE XRecos net trNet tr
+XRecos = trNet(EMG_Test);
 
 %% PERFORMANCE
-fprintf('Calculating performance indexes...\n')
-e_emg = gsubtract(T, XRecos(1:10,:));
-mse_emg = perform(trNet,T, XRecos(1:10,:));
-RMSE_emg = sqrt(mse_emg);
-e_frc = gsubtract(FORCE, XRecos(11:16,:));
-mse_frc = perform(trNet,FORCE, XRecos(11:16,:));
-RMSE_frc = sqrt(mse_frc);
-fprintf('The mse for EMG is: %d\nThe RMSE for EMG is: %d\n',mse_emg,RMSE_emg);
-fprintf('The mse for FORCE is: %d\nThe RMSE for FORCE is: %d\n',mse_frc,RMSE_frc);
-R2_emg = r_squared(T, XRecos(1:10,:));
-R2_frc = r_squared(FORCE, XRecos(11:16,:));
-fprintf('The R2 for EMG is: %d\n', R2_emg);
-fprintf('The R2 for FORCE is: %d\n', R2_frc);
+% Performance for the reconstruction of EMG signal
+fprintf('EMG: Calculating performance indexes...\n')
+MSE_emg = perform(trNet,EMG_Test, XRecos(1:10,:));
+RMSE_emg = sqrt(MSE_emg);
+fprintf('   The mse is: %d\n   The RMSE is: %d\n',MSE_emg,RMSE_emg);
+R2_emg = r_squared(EMG_Test, XRecos(1:10,:));
+fprintf('   The R2 is: %d\n', R2_emg);
 
-% Saving
-performance.mse_emg = mse_emg;
-performance.mse_frc = mse_frc;
-performance.RMSE_emg = RMSE_emg;
-performance.RMSE_frc = RMSE_frc;
-performance.R2_emg = R2_emg;
-performance.R2_frc = R2_frc;
+% Performance for the reconstruction of Forces
+fprintf('FORCE: Calculating performance indexes...\n')
+MSE_frc = perform(trNet,FORCE_Test, XRecos(11:16,:));
+RMSE_frc = sqrt(MSE_frc);
+fprintf('   The mse is: %d\n   The RMSE is: %d\n',MSE_frc,RMSE_frc);
+R2_frc = r_squared(FORCE_Test, XRecos(11:16,:));
+fprintf('   The R2 is: %d\n', R2_frc);
+
+%% Saving
+fprintf('Saving...\n');
+DAEsim.trainedNet = trNet;
+DAEsim.trainingReport = tr;
+DAEsim.MSE_emg = MSE_emg;
+DAEsim.MSE_frc = MSE_frc;
+DAEsim.RMSE_emg = RMSE_emg;
+DAEsim.RMSE_frc = RMSE_frc;
+DAEsim.R2_emg = R2_emg;
+DAEsim.R2_frc = R2_frc;
+filename = ['DAESim_sbj', num2str(trSogg), '_hn', num2str(hiddenSize), '.mat'];
+save(filename,'DAEsim');
 
 %% PLOTTING
 fprintf('Plotting the comparison...\n');
-t1 = 1:1:size(T,2);
+t1 = 1:1:size(EMG_Test,2);
 t2 = 1:1:size(XRecos,2);
 figure(1)
 for i = 1:10
     subplot(4,3,i)
-    plot(t1,T(i,:),'b');
+    plot(t1,EMG_Test(i,:),'b');
     hold on
     plot(t2,XRecos(i,:),'r');
 end
 figure(2)
-t1 = 1:1:size(FORCE,2);
-t2 = 1:1:size(XRecos,2);
 for i = 1:6
     subplot(2,3,i)
-    plot(t1,FORCE(i,:),'b');
+    plot(t1,FORCE_Test(i,:),'b');
     hold on
     plot(t2,XRecos(i+10,:),'r');
 end
@@ -157,8 +160,6 @@ end
 
 %% R2 FUNCTION
 function [R2] = r_squared(targets, estimates)
-    % T = cell2mat(targets);
-    % Y = cell2mat(estimates);
     T = targets;
     Y = estimates;
     avgTargets = mean(T, 2);

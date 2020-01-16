@@ -153,7 +153,7 @@ for s = 1:40
 end
 
 %% Saving Dataset
-fprintf('Saving...');
+fprintf('Saving...\n');
 save('TrainDataSet.mat', 'TrainDataSet');
 save('TestDataSet.mat', 'TestDataSet');
 
