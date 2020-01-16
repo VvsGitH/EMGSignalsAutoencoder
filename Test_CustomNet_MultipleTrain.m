@@ -15,9 +15,9 @@ T = TestDataSet{tsSogg,1}.emg;
 
 clearvars -except X T trSogg tsSogg
 
-MSE = zeros(10,1); RMSE = zeros(10,1); R2 = zeros(10,2); TrainingReport = cell{10,1};
+MSE = zeros(10,1); RMSE = zeros(10,1); R2 = zeros(10,2); TrainingReport = cell(10,1);
 for h = 1:10
-    fprintf('      H = %d',h);
+    fprintf('      H = %d\n',h);
 %% CUSTOM NET
 fprintf('Generating Net...\n');
 rng('default')
@@ -44,25 +44,6 @@ fprintf('Training...\n');
 [trNet, tr] = train(net,X,X); 
 TrainingReport{h,1} = tr;
 
-% % Train Net with Multicore - CRASH
-% net = train(net,X,X,'useParallel','yes');
-
-% Train net with Composite Data with Multicore
-% [trNet, tr] = train(net,Xc,Xc); 
-
-% % Train Net with the GPU - OUT OF MEMORY
-% net = train(net,Xg,Xg,'showResources','yes');
-
-% % Train Net with GPU in mini batches -  CODE NOT WORKING
-% net.trainParam.epochs = 1;
-% for i = 1:100
-%     for j = 1:nBatch
-%         net = train(net, mini_Xg{j}, mini_Xg{j});
-%     end
-% end 
-
-% save('CustomAutoencoder7n.mat','trNet','tr');
-
 %% SIMULATION
 fprintf('Simulation...\n');
 XRecos = trNet(T);
@@ -86,6 +67,7 @@ clearvars -except X T trSogg tsSogg MSE RMSE R2 TrainingReport
 end
 
 %% PLOTTING
+fprintf('Plotting...')
 s = 1:10;
 subplot(3,1,1)
 plot(s,MSE), title('MSE');
@@ -93,6 +75,9 @@ subplot(3,1,2)
 plot(s,RMSE), title('RMSE');
 subplot(3,1,3)
 plot(s,R2), title('R2');
+
+%% SAVING
+save('Results_sbj10_1000eph.mat','MSE', 'RMSE', 'R2', 'TrainingReport');
 
 
 %% R2 FUNCTION
