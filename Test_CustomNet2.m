@@ -9,7 +9,9 @@ trSogg = 10;
 
 X = TrainDataSet{trSogg,1}.emg;
 X2 = TrainDataSet{trSogg,1}.force;
-clearvars -except X X2 trSogg
+X2 = abs(X2);
+X2 = normalize(X2,2,'range');
+%clearvars -except X X2 trSogg
 
 % % Generating data for the Composite Multicore training
 % pool = gcp;
@@ -62,13 +64,13 @@ net.initFcn = 'initlay'; % Chiama le funzioni di inizializzazione di ogni layer
 net.layers{1}.size = 7; % Numero di neuroni
 net.layers{1}.transferFcn = 'elliotsig';
 net.layers{2}.transferFcn = 'purelin';
-net.layers{3}.transferFcn = 'purelin';
+net.layers{3}.transferFcn = 'elliotsig'; %'purelin';
 net.divideFcn = 'dividetrain'; %Assegna tutti i valori al train
 net.performFcn = 'mse'; % Imposta l'indice di performance come mse      %'msesparse'; % sse
 net.trainFcn = 'trainscg';  % Scalar Conjugate Gradient                  % trainbr, trainscg, traingdm, traingdx
-net.trainParam.epochs = 500;
-%net.trainParam.mu_max = 1e50;
-net.trainParam.min_grad = 1e-4;
+net.trainParam.epochs = 1000;
+net.trainParam.min_grad = 1e-06;
+net.trainParam.goal = 1e-04;
 net.trainParam.max_fail = 5;
 
 % Configuring net for input and output dimensions
@@ -104,6 +106,9 @@ load TestDataSet
 tsSogg = trSogg;
 T = TestDataSet{tsSogg,1}.emg;
 FORCE = TestDataSet{tsSogg,1}.force;
+FORCE = abs(FORCE);
+FORCE = normalize(FORCE,2,'range');
+
 XRecos = trNet(T);
 
 clearvars -except X X2 T FORCE XRecos net trNet tr
@@ -152,6 +157,7 @@ for i = 1:6
     hold on
     plot(t2,XRecos(i+10,:),'r');
 end
+
 
 %% R2 FUNCTION
 function [R2] = r_squared(targets, estimates)

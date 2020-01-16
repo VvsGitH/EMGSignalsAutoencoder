@@ -111,7 +111,7 @@ for s = 1:40
 end
 
 %% Signals Length Analisys
-fprintf('Signal Length Analisys');
+fprintf('Signal Length Analisys\n');
 dimVector = [];
 for s = 1:40
     for m = mov
@@ -153,6 +153,7 @@ for s = 1:40
 end
 
 %% Saving Dataset
+fprintf('Saving...');
 save('TrainDataSet.mat', 'TrainDataSet');
 save('TestDataSet.mat', 'TestDataSet');
 
