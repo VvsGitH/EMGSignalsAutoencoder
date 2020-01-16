@@ -11,7 +11,7 @@ X = TrainDataSet{trSogg,1}.emg;
 X2 = TrainDataSet{trSogg,1}.force;
 X2 = abs(X2);
 X2 = normalize(X2,2,'range');
-%clearvars -except X X2 trSogg
+clearvars -except X X2 trSogg
 
 % % Generating data for the Composite Multicore training
 % pool = gcp;
@@ -64,7 +64,7 @@ net.initFcn = 'initlay'; % Chiama le funzioni di inizializzazione di ogni layer
 net.layers{1}.size = 7; % Numero di neuroni
 net.layers{1}.transferFcn = 'elliotsig';
 net.layers{2}.transferFcn = 'purelin';
-net.layers{3}.transferFcn = 'elliotsig'; %'purelin';
+net.layers{3}.transferFcn = 'purelin';
 net.divideFcn = 'dividetrain'; %Assegna tutti i valori al train
 net.performFcn = 'mse'; % Imposta l'indice di performance come mse      %'msesparse'; % sse
 net.trainFcn = 'trainscg';  % Scalar Conjugate Gradient                  % trainbr, trainscg, traingdm, traingdx
@@ -92,13 +92,10 @@ view(net)
 %% TRAINING
 fprintf('Training...\n');
 
-[trNet, tr] = train(net,X,[X; X2],'showResources','yes'); 
+[trNet, tr] = train(net,X,[X; X2]); 
 
 % Train net with Composite Data with Multicore
 % [trNet, tr] = train(net,Xc,Tc,'showResources','yes'); 
-
-% Saving
-% save('CustomNLDoubleAutoencoder7n.mat','trNet', 'tr');
 
 %% SIMULATION
 fprintf('Simulation...\n');
@@ -135,7 +132,6 @@ performance.RMSE_emg = RMSE_emg;
 performance.RMSE_frc = RMSE_frc;
 performance.R2_emg = R2_emg;
 performance.R2_frc = R2_frc;
-%save('AutoencDb_pos_7n.mat','trNet', 'tr','performance');
 
 %% PLOTTING
 fprintf('Plotting the comparison...\n');
