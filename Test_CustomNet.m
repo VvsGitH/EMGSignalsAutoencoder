@@ -6,9 +6,15 @@ clearvars
 fprintf('Loading Data...\n');
 load TrainDataSet
 trSogg = 10;
+EMG_Train = TrainDataSet{trSogg,1}.emg;
+FORCE_Train = TrainDataSet{trSogg,1}.force;
 
-X = TrainDataSet{trSogg,1}.emg;
-clearvars -except X trSogg
+load TestDataSet
+tsSogg = trSogg;
+EMG_Test = TestDataSet{tsSogg,1}.emg;
+FORCE_Test = TestDataSet{tsSogg,1}.force;
+
+clearvars -except EMG_Train EMG_Test FORCE_Train FORCE_Test
 
 % % Generating data for the Composite Multicore training
 % pool = gcp;
@@ -37,7 +43,7 @@ clearvars -except X trSogg
 %% CUSTOM NET
 fprintf('Generating Net...\n');
 rng('default')
-hiddenSize = 4;
+hiddenSize = 6;
 net = feedforwardnet(hiddenSize);
 net.name = 'Autoencoder';
 net.layers{1}.name = 'Encoder';
@@ -48,17 +54,17 @@ net.performFcn = 'mse'; % Mean Square Error
 net.divideFcn = 'dividetrain'; % Assegna tutti i valori al train
 net.layers{1}.transferFcn = 'elliotsig'; %'elliotsig' = n / (1 + abs(n)) - better for GPU; 'tansig' = 2/(1+exp(-2*n))-1
 net.layers{2}.transferFcn = 'purelin';
-net.trainParam.epochs = 500;
+net.trainParam.epochs = 10000;
 net.trainParam.min_grad = 1e-06;
 net.trainParam.goal = 1e-05;
-net = configure(net,X,X); % Configure net for the standard Dataset
+net = configure(net,EMG_Train,EMG_Train); % Configure net for the standard Dataset
 % net = configure(net,Xc{1},Xc{1}); % Configure net for the Composite DataSet
 view(net)
 
 %% TRAINING
 fprintf('Training...\n');
 
-[trNet, tr] = train(net,X,X); 
+[trNet, tr] = train(net,EMG_Train,EMG_Train); 
 
 % % Train Net with Multicore - CRASH
 % net = train(net,X,X,'useParallel','yes');
@@ -77,40 +83,61 @@ fprintf('Training...\n');
 %     end
 % end 
 
-% save('CustomAutoencoder7n.mat','trNet','tr');
-
 %% SIMULATION
-fprintf('Training Complete\nSimulation...\n');
-load TestDataSet
-tsSogg = trSogg;
-T = TestDataSet{tsSogg,1}.emg;
-XRecos = trNet(T);
-clearvars -except X T XRecos net trNet tr
+fprintf('Simulation...\n');
+EMG_Recos = trNet(EMG_Test);
+
+clearvars -except EMG_Train EMG_Test FORCE_Train FORCE_Test EMG_Recos tr trNet
+
+%% FORCE RECONSTRUCTION
+fprintf('Force Reconstruction...\n');
+inputWeigths = cell2mat(trNet.IW);
+S_Train = elliotsig(inputWeigths*EMG_Train);
+Hae = FORCE_Train*pinv(S_Train);
+
+S_Test = elliotsig(inputWeigths*EMG_Test);
+FORCE_Recos = Hae*S_Test;
 
 %% PERFORMANCE
-fprintf('Calculating performance indexes...\n')
-e = gsubtract(T, XRecos);
-mse = perform(trNet,T, XRecos);
-RMSE = sqrt(mse);
-fprintf('The mse is: %d\nThe RMSE is: %d\n',mse,RMSE);
-R2 = r_squared(T, XRecos);
-fprintf('The R2 is: %d\n', R2);
+% Performance for the reconstruction of EMG signal
+fprintf('EMG: Calculating performance indexes...\n')
+MSE_emg = perform(trNet,EMG_Test, EMG_Recos);
+RMSE_emg = sqrt(MSE_emg);
+fprintf('   The mse is: %d\n   The RMSE is: %d\n',MSE_emg,RMSE_emg);
+R2_emg = r_squared(EMG_Test, EMG_Recos);
+fprintf('   The R2 is: %d\n', R2_emg);
+
+% Performance for the reconstruction of Forces
+fprintf('FORCE: Calculating performance indexes...\n')
+e = gsubtract(FORCE_Test, FORCE_Recos);
+MSE_frc = mean(e.^2,'all');
+RMSE_frc = sqrt(MSE_frc);
+fprintf('   The mse is: %d\n   The RMSE is: %d\n',MSE_frc,RMSE_frc);
+R2_frc = r_squared(FORCE_Test, FORCE_Recos);
+fprintf('   The R2 is: %d\n', R2_frc);
 
 % Saving
-performance.mse_emg = mse;
-performance.RMSE_emg = RMSE;
-performance.R2_emg = R2;
-% save('Autoenc_7n.mat','trNet','performance');
+performance.mse_emg = MSE_emg;
+performance.RMSE_emg = RMSE_emg;
+performance.R2_emg = R2_emg;
 
 %% PLOTTING
 fprintf('Plotting the comparison...\n');
-t1 = 1:1:size(T,2);
-t2 = 1:1:size(XRecos,2);
+t1 = 1:1:size(EMG_Test,2);
+t2 = 1:1:size(EMG_Recos,2);
+figure(1)
 for i = 1:10
     subplot(4,3,i)
-    plot(t1,T(i,:),'b');
+    plot(t1,EMG_Test(i,:),'b');
     hold on
-    plot(t2,XRecos(i,:),'r');
+    plot(t2,EMG_Recos(i,:),'r');
+end
+figure(2)
+for i = 1:6
+    subplot(2,3,i)
+    plot(t1,FORCE_Test(i,:),'b');
+    hold on
+    plot(t2,FORCE_Recos(i,:),'r');
 end
 
 
