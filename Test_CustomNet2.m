@@ -6,6 +6,7 @@ clearvars
 fprintf('Loading Data...\n');
 load TrainDataSet
 trSogg = 10;
+
 X = TrainDataSet{trSogg,1}.emg;
 X2 = TrainDataSet{trSogg,1}.force;
 clearvars -except X X2 trSogg

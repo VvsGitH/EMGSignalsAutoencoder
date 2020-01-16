@@ -4,40 +4,24 @@ clearvars
 
 %% SETTING UP
 fprintf('Loading Data...\n');
+
 load TrainDataSet
 trSogg = 10;
-
 X = TrainDataSet{trSogg,1}.emg;
-clearvars -except X trSogg
 
-% % Generating data for the Composite Multicore training
-% pool = gcp;
-% Xc = Composite();
-% L = size(X,2)/pool.NumWorkers;
-% Xc{1} = X(1:L);
-% for i = 1:pool.NumWorkers-1
-%     Xc{i+1} = X(L*i+1:L*i+L);
-% end
-% clearvars -except X Xc nsogg
+load TestDataSet
+tsSogg = trSogg;
+T = TestDataSet{tsSogg,1}.emg;
 
-% % Generating GPU arrays for the GPU training
-% Xg = nndata2gpu(X);
-% clearvars -except X Xg
+clearvars -except X T trSogg tsSogg
 
-% % Generatig mini-batches for GPU
-% nBatch = 3;
-% L = size(X,2)/nBatch;
-% mini_Xg = cell(1,nBatch);
-% mini_Xg{1} = nndata2gpu(X(1:L));
-% for i = 1:nBatch-1
-%     mini_Xg{i+1} = nndata2gpu(X(L*i+1:L*i+L));
-% end
-% clearvars -except X mini_Xg nBatch
-
+MSE = zeros(10,1); RMSE = zeros(10,1); R2 = zeros(10,2); TrainingReport = cell{10,1};
+for h = 1:10
+    fprintf('      H = %d',h);
 %% CUSTOM NET
 fprintf('Generating Net...\n');
 rng('default')
-hiddenSize = 4;
+hiddenSize = h;
 net = feedforwardnet(hiddenSize);
 net.name = 'Autoencoder';
 net.layers{1}.name = 'Encoder';
@@ -48,17 +32,17 @@ net.performFcn = 'mse'; % Mean Square Error
 net.divideFcn = 'dividetrain'; % Assegna tutti i valori al train
 net.layers{1}.transferFcn = 'elliotsig'; %'elliotsig' = n / (1 + abs(n)) - better for GPU; 'tansig' = 2/(1+exp(-2*n))-1
 net.layers{2}.transferFcn = 'purelin';
-net.trainParam.epochs = 500;
-net.trainParam.min_grad = 1e-06;
+net.trainParam.epochs = 1000;
+net.trainParam.min_grad = 1e-07;
 net.trainParam.goal = 1e-05;
 net = configure(net,X,X); % Configure net for the standard Dataset
-% net = configure(net,Xc{1},Xc{1}); % Configure net for the Composite DataSet
-view(net)
+%view(net)
 
 %% TRAINING
 fprintf('Training...\n');
 
 [trNet, tr] = train(net,X,X); 
+TrainingReport{h,1} = tr;
 
 % % Train Net with Multicore - CRASH
 % net = train(net,X,X,'useParallel','yes');
@@ -80,38 +64,35 @@ fprintf('Training...\n');
 % save('CustomAutoencoder7n.mat','trNet','tr');
 
 %% SIMULATION
-fprintf('Training Complete\nSimulation...\n');
-load TestDataSet
-tsSogg = trSogg;
-T = TestDataSet{tsSogg,1}.emg;
+fprintf('Simulation...\n');
 XRecos = trNet(T);
-clearvars -except X T XRecos net trNet tr
 
 %% PERFORMANCE
 fprintf('Calculating performance indexes...\n')
 e = gsubtract(T, XRecos);
 mse = perform(trNet,T, XRecos);
-RMSE = sqrt(mse);
-fprintf('The mse is: %d\nThe RMSE is: %d\n',mse,RMSE);
-R2 = r_squared(T, XRecos);
-fprintf('The R2 is: %d\n', R2);
+rmse = sqrt(mse);
+fprintf('  The mse is: %d\n  The RMSE is: %d\n',mse,rmse);
+r2 = r_squared(T, XRecos);
+fprintf('  The R2 is: %d\n', r2);
 
 % Saving
-performance.mse_emg = mse;
-performance.RMSE_emg = RMSE;
-performance.R2_emg = R2;
-% save('Autoenc_7n.mat','trNet','performance');
+MSE(h) = mse;
+RMSE(h) = rmse;
+R2(h) = r2;
+
+clearvars -except X T trSogg tsSogg MSE RMSE R2 TrainingReport
+
+end
 
 %% PLOTTING
-fprintf('Plotting the comparison...\n');
-t1 = 1:1:size(T,2);
-t2 = 1:1:size(XRecos,2);
-for i = 1:10
-    subplot(4,3,i)
-    plot(t1,T(i,:),'b');
-    hold on
-    plot(t2,XRecos(i,:),'r');
-end
+s = 1:10;
+subplot(3,1,1)
+plot(s,MSE), title('MSE');
+subplot(3,1,2)
+plot(s,RMSE), title('RMSE');
+subplot(3,1,3)
+plot(s,R2), title('R2');
 
 
 %% R2 FUNCTION
@@ -124,4 +105,3 @@ function [R2] = r_squared(targets, estimates)
     denominator = sum(sum((T - avgTargetsMatr).^2));  %SST
     R2 = 1 - (numerator ./ denominator);
 end
- 
