@@ -15,7 +15,11 @@ AEsim.R2_emg = zeros(40,10); AEsim.R2_frc = zeros(40,10);
 AEsim.trainedNet = cell(40,10); AEsim.trainingReport = cell(40,10);
 AEsim.emgToForceMatrix = cell(40,10);
 
+<<<<<<< HEAD
 for trSogg = 5 : 5
+=======
+for trSogg = 22:22
+>>>>>>> ea522c568105b6f8f3a00e3fb2af0339c52b3ec3
     fprintf('      Subject = %d\n',trSogg);
     EMG_Train = TrainDataSet{trSogg,1}.emg;
     FORCE_Train = TrainDataSet{trSogg,1}.force;
