@@ -15,7 +15,7 @@ AEsim.R2_emg = zeros(40,10); AEsim.R2_frc = zeros(40,10);
 AEsim.trainedNet = cell(40,10); AEsim.trainingReport = cell(40,10);
 AEsim.emgToForceMatrix = cell(40,10);
 
-for trSogg = 1:40
+for trSogg = 5 : 5
     fprintf('      Subject = %d\n',trSogg);
     EMG_Train = TrainDataSet{trSogg,1}.emg;
     FORCE_Train = TrainDataSet{trSogg,1}.force;
@@ -96,8 +96,8 @@ end
 %% SAVING
 fprintf('Saving...\n');
 % Choose One
-% filename = ['AESim_sbj', num2str(trSogg), '_allSizes.mat'];
-filename = ['AESim_n', num2str(h), '_allSbjs.mat'];
+filename = ['AESim_sbj', num2str(trSogg), '_allSizes.mat'];
+% filename = ['AESim_n', num2str(h), '_allSbjs.mat'];
 save(filename,'AESim');
 
 %% PLOTTING
