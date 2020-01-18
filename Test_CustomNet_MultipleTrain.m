@@ -1,6 +1,7 @@
 close all
 clc
 clearvars
+rng('default')
 pool = gcp;
 
 %% SETTING UP

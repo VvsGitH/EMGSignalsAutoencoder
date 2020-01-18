@@ -1,11 +1,13 @@
 close all
 clc
 clearvars
+rng('default')
+pool = gcp;
 
 %% SETTING UP
 fprintf('Loading Data...\n');
 load TrainDataSet
-trSogg = 10;
+trSogg = 1;
 EMG_Train = TrainDataSet{trSogg,1}.emg;
 FORCE_Train = TrainDataSet{trSogg,1}.force;
 
@@ -14,77 +16,42 @@ tsSogg = trSogg;
 EMG_Test = TestDataSet{tsSogg,1}.emg;
 FORCE_Test = TestDataSet{tsSogg,1}.force;
 
-% % Generating data for the Composite Multicore training
-% pool = gcp;
-% Xc = Composite();
-% L = size(X,2)/pool.NumWorkers;
-% Xc{1} = X(1:L);
-% for i = 1:pool.NumWorkers-1
-%     Xc{i+1} = X(L*i+1:L*i+L);
-% end
-% clearvars -except X Xc nsogg
-
-% % Generating GPU arrays for the GPU training
-% Xg = nndata2gpu(X);
-% clearvars -except X Xg
-
-% % Generatig mini-batches for GPU
-% nBatch = 3;
-% L = size(X,2)/nBatch;
-% mini_Xg = cell(1,nBatch);
-% mini_Xg{1} = nndata2gpu(X(1:L));
-% for i = 1:nBatch-1
-%     mini_Xg{i+1} = nndata2gpu(X(L*i+1:L*i+L));
-% end
-% clearvars -except X mini_Xg nBatch
-
-%% CUSTOM NET
+%% CONFIGURING CUSTOM NET
 fprintf('Generating Net...\n');
-rng('default')
 hiddenSize = 6;
+
+% Define topology
 net = feedforwardnet(hiddenSize);
-net.name = 'Autoencoder';
-net.layers{1}.name = 'Encoder';
-net.layers{2}.name = 'Decoder';
 net.biasConnect = [0;1];    % Il layer d'uscita EMG ha un bias
+
+% Set net functions
 net.trainFcn = 'trainscg'; %'trainlm': Jacobian - not supported by GPU; % 'trainscg': Scalar Conjugate Gradient - better for GPU
 net.performFcn = 'mse'; % Mean Square Error
 net.divideFcn = 'dividetrain'; % Assegna tutti i valori al train
 net.layers{1}.transferFcn = 'elliotsig'; %'elliotsig' = n / (1 + abs(n)) - better for GPU; 'tansig' = 2/(1+exp(-2*n))-1
 net.layers{2}.transferFcn = 'purelin';
-net.trainParam.epochs = 10000;
-net.trainParam.min_grad = 1e-06;
-net.trainParam.goal = 1e-05;
-net = configure(net,EMG_Train,EMG_Train); % Configure net for the standard Dataset
-% net = configure(net,Xc{1},Xc{1}); % Configure net for the Composite DataSet
+
+% Configuring net for input and output dimensions
+net = configure(net,EMG_Train,EMG_Train);
+
+% Set values for labels
+net.name = 'Autoencoder';
+net.layers{1}.name = 'Encoder';
+net.layers{2}.name = 'Decoder';
 
 view(net)
 
 %% TRAINING
 fprintf('Training...\n');
-
-[trNet, tr] = train(net,EMG_Train,EMG_Train); 
-
-% % Train Net with Multicore - CRASH
-% net = train(net,X,X,'useParallel','yes');
-
-% Train net with Composite Data with Multicore
-% [trNet, tr] = train(net,Xc,Xc); 
-
-% % Train Net with the GPU - OUT OF MEMORY
-% net = train(net,Xg,Xg,'showResources','yes');
-
-% % Train Net with GPU in mini batches -  CODE NOT WORKING
-% net.trainParam.epochs = 1;
-% for i = 1:100
-%     for j = 1:nBatch
-%         net = train(net, mini_Xg{j}, mini_Xg{j});
-%     end
-% end 
+net.trainParam.epochs = 10000;
+net.trainParam.min_grad = 0;
+net.trainParam.goal = 1e-05;
+net.trainParam.showWindow = 1;
+[trNet, tr] = train(net,EMG_Train,EMG_Train,'useParallel','yes'); 
 
 %% SIMULATION
 fprintf('Simulation...\n');
-EMG_Recos = trNet(EMG_Test);
+EMG_Recos = trNet(EMG_Test,'useParallel','yes');
 
 %% FORCE RECONSTRUCTION
 fprintf('Force Reconstruction...\n');
@@ -124,7 +91,7 @@ AEsim.RMSE_emg = RMSE_emg;
 AEsim.RMSE_frc = RMSE_frc;
 AEsim.R2_emg = R2_emg;
 AEsim.R2_frc = R2_frc;
-filename = ['AESim_sbj', num2str(trSogg), '_hn', num2str(hiddenSize), '.mat'];
+filename = ['AESim_sbj', num2str(trSogg), '_n', num2str(hiddenSize), '.mat'];
 save(filename,'AEsim');
 
 %% PLOTTING
