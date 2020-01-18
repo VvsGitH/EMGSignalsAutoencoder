@@ -1,10 +1,10 @@
 close all
 clc
 clearvars
+pool = gcp;
 
 %% SETTING UP
 fprintf('Loading Data...\n');
-
 load TrainDataSet
 load TestDataSet
 
@@ -15,11 +15,7 @@ AEsim.R2_emg = zeros(40,10); AEsim.R2_frc = zeros(40,10);
 AEsim.trainedNet = cell(40,10); AEsim.trainingReport = cell(40,10);
 AEsim.emgToForceMatrix = cell(40,10);
 
-<<<<<<< HEAD
-for trSogg = 5 : 5
-=======
-for trSogg = 22:22
->>>>>>> ea522c568105b6f8f3a00e3fb2af0339c52b3ec3
+for trSogg = 23:23
     fprintf('      Subject = %d\n',trSogg);
     EMG_Train = TrainDataSet{trSogg,1}.emg;
     FORCE_Train = TrainDataSet{trSogg,1}.force;
@@ -42,18 +38,19 @@ for trSogg = 22:22
         net.divideFcn = 'dividetrain'; % Assegna tutti i valori al train
         net.layers{1}.transferFcn = 'elliotsig'; %'elliotsig' = n / (1 + abs(n)) - better for GPU; 'tansig' = 2/(1+exp(-2*n))-1
         net.layers{2}.transferFcn = 'purelin';
-        net.trainParam.epochs = 1000;
-        net.trainParam.min_grad = 0;
-        net.trainParam.goal = 1e-05;
         net = configure(net,EMG_Train,EMG_Train); % Configure net for the standard Dataset
         
         %% TRAINING
         fprintf('Training...\n');
-        [trNet, tr] = train(net,EMG_Train,EMG_Train);
+        net.trainParam.epochs = 1000;
+        net.trainParam.min_grad = 0;
+        net.trainParam.goal = 1e-05;
+        net.trainParam.showWindow=0;
+        [trNet, tr] = train(net,EMG_Train,EMG_Train,'useParallel','yes');
         
         %% SIMULATION
         fprintf('Simulation...\n');
-        EMG_Recos = trNet(EMG_Test);
+        EMG_Recos = trNet(EMG_Test,'useParallel','yes');
         
         %% FORCE RECONSTRUCTION
         fprintf('Force Reconstruction...\n');
@@ -105,14 +102,20 @@ filename = ['AESim_sbj', num2str(trSogg), '_allSizes.mat'];
 save(filename,'AESim');
 
 %% PLOTTING
-% fprintf('Plotting...')
-% s = 1:10;
-% subplot(3,1,1)
-% plot(s,MSE), title('MSE');
-% subplot(3,1,2)
-% plot(s,RMSE), title('RMSE');
-% subplot(3,1,3)
-% plot(s,R2), title('R2');
+fprintf('Plotting...\n')
+h = 1:10;
+subplot(2,3,1)
+plot(h,AESim.MSE_emg(trSogg,:)), title('EMG MSE');
+subplot(2,3,2)
+plot(h,AESim.RMSE_emg(trSogg,:)), title('EMG RMSE');
+subplot(2,3,3)
+plot(h,AESim.R2_emg(trSogg,:)), title('EMG R2');
+subplot(2,3,4)
+plot(h,AESim.MSE_frc(trSogg,:)), title('FORCE MSE');
+subplot(2,3,5)
+plot(h,AESim.RMSE_frc(trSogg,:)), title('FORCE RMSE');
+subplot(2,3,6)
+plot(h,AESim.R2_frc(trSogg,:)), title('FORCE R2');
 
 
 %% R2 FUNCTION
