@@ -16,11 +16,13 @@ AEsim.R2_emg = zeros(40,10); AEsim.R2_frc = zeros(40,10);
 AEsim.trainedNet = cell(40,10); AEsim.trainingReport = cell(40,10);
 AEsim.emgToForceMatrix = cell(40,10);
 
-for trSogg = 23:23
+for trSogg = 24:24
     fprintf('      Subject = %d\n',trSogg);
     EMG_Train = TrainDataSet{trSogg,1}.emg;
+    EMG_Train_gpu = nndata2gpu(TrainDataSet{trSogg,1}.emg);
     FORCE_Train = TrainDataSet{trSogg,1}.force;
     EMG_Test = TestDataSet{trSogg,1}.emg;
+    EMG_Test_gpu = nndata2gpu(TestDataSet{trSogg,1}.emg);
     FORCE_Test = TestDataSet{trSogg,1}.force;
     
     for h = 1:10
@@ -46,12 +48,13 @@ for trSogg = 23:23
         net.trainParam.epochs = 1000;
         net.trainParam.min_grad = 0;
         net.trainParam.goal = 1e-05;
-        net.trainParam.showWindow=0;
-        [trNet, tr] = train(net,EMG_Train,EMG_Train,'useParallel','yes');
+        net.trainParam.showWindow = 1;
+        [trNet, tr] = train(net,EMG_Train_gpu,EMG_Train_gpu,'showResources','yes');
         
         %% SIMULATION
         fprintf('Simulation...\n');
-        EMG_Recos = trNet(EMG_Test,'useParallel','yes');
+        EMG_Recos_gpu = trNet(EMG_Test_gpu,'showResources','yes');
+        EMG_Recos = gpu2nndata(EMG_Recos_gpu);
         
         %% FORCE RECONSTRUCTION
         fprintf('Force Reconstruction...\n');
@@ -81,15 +84,15 @@ for trSogg = 23:23
         fprintf('   The R2 is: %d\n', r2_frc);
         
         % Inserting into vectors
-        AEsim.trainedNet{trSogg,h} = trNet;
-        AEsim.trainingReport{trSogg,h} = tr;
+        AESim.trainedNet{trSogg,h} = trNet;
+        AESim.trainingReport{trSogg,h} = tr;
         AEsim.emgToForceMatrix{trSogg,h} = Hae;
-        AEsim.MSE_emg(trSogg,h) = mse_emg;
-        AEsim.MSE_frc(trSogg,h) = mse_frc;
-        AEsim.RMSE_emg(trSogg,h) = rmse_emg;
-        AEsim.RMSE_frc(trSogg,h) = rmse_frc;
-        AEsim.R2_emg(trSogg,h) = r2_emg;
-        AEsim.R2_frc(trSogg,h) = r2_frc;
+        AESim.MSE_emg(trSogg,h) = mse_emg;
+        AESim.MSE_frc(trSogg,h) = mse_frc;
+        AESim.RMSE_emg(trSogg,h) = rmse_emg;
+        AESim.RMSE_frc(trSogg,h) = rmse_frc;
+        AESim.R2_emg(trSogg,h) = r2_emg;
+        AESim.R2_frc(trSogg,h) = r2_frc;
         
         clear mse_emg mse_frc rmse_emg rmse_frc r2_emg r2_frc EMG_Recos FORCE_Recos net tr trNet Hae
         
@@ -100,7 +103,7 @@ fprintf('Saving...\n');
 % Choose One
 filename = ['AESim_sbj', num2str(trSogg), '_allSizes.mat'];
 % filename = ['AESim_n', num2str(h), '_allSbjs.mat'];
-save(filename,'AEsim');
+save(filename,'AESim');
 
 %% PLOTTING
 fprintf('Plotting...\n')
