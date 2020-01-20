@@ -45,7 +45,7 @@ net.initFcn = 'initlay'; % Chiama le funzioni di inizializzazione di ogni layer
 
 % Set net functions
 net.layers{1}.size = hiddenSize; % Numero di neuroni
-net.layers{1}.transferFcn = 'elliotsig';
+net.layers{1}.transferFcn = 'poslin';
 net.layers{2}.transferFcn = 'purelin';
 net.layers{3}.transferFcn = 'purelin';
 net.divideFcn = 'dividetrain'; %Assegna tutti i valori al train

@@ -8,112 +8,113 @@ pool = gcp;
 fprintf('Loading Data...\n');
 load TrainDataSet
 load TestDataSet
+trSogg = 1;
+EMG_Train = TrainDataSet{trSogg,1}.emg;
+FORCE_Train = TrainDataSet{trSogg,1}.force;
+FORCE_Train = abs(FORCE_Train);
+FORCE_Train = normalize(FORCE_Train,2,'range');
+EMG_Test = TestDataSet{trSogg,1}.emg;
+FORCE_Test = TestDataSet{trSogg,1}.force;
+FORCE_Test = abs(FORCE_Test);
+FORCE_Test = normalize(FORCE_Test,2,'range');
 
 %% TRAINING/SIMULATION LOOP
-DAEsim.MSE_emg = zeros(40,10); DAEsim.MSE_frc = zeros(40,10);
-DAEsim.RMSE_emg = zeros(40,10); DAEsim.RMSE_frc = zeros(40,10);
-DAEsim.R2_emg = zeros(40,10); DAEsim.R2_frc = zeros(40,10);
-DAEsim.trainedNet = cell(40,10); DAEsim.trainingReport = cell(40,10);
-
-for trSogg = 1:1
-    fprintf('      Subject = %d\n',trSogg);
-    EMG_Train = TrainDataSet{trSogg,1}.emg;
-    FORCE_Train = TrainDataSet{trSogg,1}.force;
-    FORCE_Train = abs(FORCE_Train);
-    FORCE_Train = normalize(FORCE_Train,2,'range');
-    EMG_Test = TestDataSet{trSogg,1}.emg;
-    FORCE_Test = TestDataSet{trSogg,1}.force;
-    FORCE_Test = abs(FORCE_Test);
-    FORCE_Test = normalize(FORCE_Test,2,'range');
+MSE_emg = zeros(1,10); MSE_frc = zeros(1,10);
+RMSE_emg = zeros(1,10); RMSE_frc = zeros(1,10);
+R2_emg = zeros(1,10); R2_frc = zeros(1,10);
+trainedNet = cell(1,10); trainingReport = cell(1,10);    
     
-    for h = 1:10
-        fprintf('      H = %d\n',h);
-        
-        %% CONFIG NET
-        fprintf('Configuring Net...\n');
-        net = network;
-        % Define topology
-        net.numInputs = 1;
-        net.numLayers = 3;
-        net.biasConnect = [0;1;0];    % Il layer d'uscita EMG ha un bias
-        net.inputConnect(1,1) = 1;
-        net.layerConnect(2,1) = 1;
-        net.layerConnect(3,1) = 1;
-        net.outputConnect = [0,1,1];
-        % Set up initialization options
-        net.layers{1}.initFcn = 'initwb';
-        net.layers{1}.size = h; % Numero di neuroni
-        net.inputWeights{1,1}.initFcn = 'randsmall'; % Inizializzazione con piccoli valori casuali con segno
-        net.biases{1}.initFcn = 'randsmall';
-        net.layers{2}.initFcn = 'initwb';
-        net.layerWeights{2,1}.initFcn = 'randsmall';
-        net.biases{2}.initFcn = 'randsmall';
-        net.initFcn = 'initlay'; % Chiama le funzioni di inizializzazione di ogni layer
-        % Set net functions
-        net.layers{1}.transferFcn = 'elliotsig';
-        net.layers{2}.transferFcn = 'purelin';
-        net.layers{3}.transferFcn = 'purelin';
-        net.divideFcn = 'dividetrain'; %Assegna tutti i valori al train
-        net.performFcn = 'mse'; % Imposta l'indice di performance come mse      %'msesparse'; % sse
-        net.trainFcn = 'trainscg';  % Scalar Conjugate Gradient                  % trainbr, trainscg, traingdm, traingdx
-        % Configuring net for input and output dimensions
-        net = configure(net,'inputs',EMG_Train,1);
-        net = configure(net,'outputs',EMG_Train,1);
-        net = configure(net,'outputs',FORCE_Train,2);
-        % Set values for labels
-        net.name = 'Autoencoder';
-        net.layers{1}.name = 'Encoder';
-        net.layers{2}.name = 'Decoder1';
-        net.layers{3}.name = 'Decoder2';
-        
-        %% TRAINING
-        fprintf('Training...\n');
-        net.trainParam.epochs = 1000;
-        net.trainParam.min_grad = 0;
-        net.trainParam.goal = 1e-05;
-        net.trainParam.showWindow = 1;
-        [trNet, tr] = train(net,EMG_Train,[EMG_Train; FORCE_Train],'useParallel','yes');
-        
-        %% SIMULATION
-        fprintf('Simulation...\n');
-        XRecos = trNet(EMG_Test,'useParallel','yes');
-
-        %% PERFORMANCE
-        % Performance for the reconstruction of EMG signal
-        fprintf('EMG: Calculating performance indexes...\n')
-        mse_emg = perform(trNet,EMG_Test, XRecos(1:10,:));
-        rmse_emg = sqrt(mse_emg);
-        fprintf('   The mse is: %d\n   The RMSE is: %d\n',mse_emg,rmse_emg);
-        r2_emg = r_squared(EMG_Test, XRecos(1:10,:));
-        fprintf('   The R2 is: %d\n', r2_emg);
-        
-        % Performance for the reconstruction of Forces
-        fprintf('FORCE: Calculating performance indexes...\n')
-        mse_frc = perform(trNet,FORCE_Test, XRecos(11:16,:));
-        rmse_frc = sqrt(mse_frc);
-        fprintf('   The mse is: %d\n   The RMSE is: %d\n',mse_frc,rmse_frc);
-        r2_frc = r_squared(FORCE_Test, XRecos(11:16,:));
-        fprintf('   The R2 is: %d\n', r2_frc);
-        
-        % Inserting into vectors
-        DAEsim.trainedNet{trSogg,h} = trNet;
-        DAEsim.trainingReport{trSogg,h} = tr;
-        DAEsim.MSE_emg(trSogg,h) = mse_emg;
-        DAEsim.MSE_frc(trSogg,h) = mse_frc;
-        DAEsim.RMSE_emg(trSogg,h) = rmse_emg;
-        DAEsim.RMSE_frc(trSogg,h) = rmse_frc;
-        DAEsim.R2_emg(trSogg,h) = r2_emg;
-        DAEsim.R2_frc(trSogg,h) = r2_frc;
-        
-        clear mse_emg mse_frc rmse_emg rmse_frc r2_emg r2_frc EMG_Recos FORCE_Recos net tr trNet
-        
-    end
+parfor h = 1:10
+    fprintf('      H = %d\n',h);    
+    %% CONFIG NET
+    fprintf('Configuring Net...\n');
+    net = network;
+    % Define topology
+    net.numInputs = 1;
+    net.numLayers = 3;
+    net.biasConnect = [0;1;0];    % Il layer d'uscita EMG ha un bias
+    net.inputConnect(1,1) = 1;
+    net.layerConnect(2,1) = 1;
+    net.layerConnect(3,1) = 1;
+    net.outputConnect = [0,1,1];
+    % Set up initialization options
+    net.layers{1}.initFcn = 'initwb';
+    net.layers{1}.size = h; % Numero di neuroni
+    net.inputWeights{1,1}.initFcn = 'randsmall'; % Inizializzazione con piccoli valori casuali con segno
+    net.biases{1}.initFcn = 'randsmall';
+    net.layers{2}.initFcn = 'initwb';
+    net.layerWeights{2,1}.initFcn = 'randsmall';
+    net.biases{2}.initFcn = 'randsmall';
+    net.initFcn = 'initlay'; % Chiama le funzioni di inizializzazione di ogni layer
+    % Set net functions
+    net.layers{1}.transferFcn = 'poslin';
+    net.layers{2}.transferFcn = 'purelin';
+    net.layers{3}.transferFcn = 'purelin';
+    net.divideFcn = 'dividetrain'; %Assegna tutti i valori al train
+    net.performFcn = 'mse'; % Imposta l'indice di performance come mse      %'msesparse'; % sse
+    net.trainFcn = 'trainscg';  % Scalar Conjugate Gradient                  % trainbr, trainscg, traingdm, traingdx
+    % Configuring net for input and output dimensions
+    net = configure(net,'inputs',EMG_Train,1);
+    net = configure(net,'outputs',EMG_Train,1);
+    net = configure(net,'outputs',FORCE_Train,2);
+    % Set values for labels
+    net.name = 'Autoencoder';
+    net.layers{1}.name = 'Encoder';
+    net.layers{2}.name = 'Decoder1';
+    net.layers{3}.name = 'Decoder2';
+    
+    %% TRAINING
+    fprintf('Training...\n');
+    net.trainParam.epochs = 1000;
+    net.trainParam.min_grad = 0;
+    net.trainParam.goal = 1e-05;
+    net.trainParam.showWindow = 1;
+    [trNet, tr] = train(net,EMG_Train,[EMG_Train; FORCE_Train],'useParallel','yes');
+    trainedNet{1,h} = trNet;
+    trainingReport{1,h} = tr;
+    
+    %% SIMULATION
+    fprintf('Simulation...\n');
+    XRecos = trNet(EMG_Test,'useParallel','yes');
+    
+    %% PERFORMANCE
+    % Performance for the reconstruction of EMG signal
+    fprintf('EMG: Calculating performance indexes...\n')
+    mse_emg = perform(trNet,EMG_Test, XRecos(1:10,:));
+    rmse_emg = sqrt(mse_emg);
+    fprintf('   The mse is: %d\n   The RMSE is: %d\n',mse_emg,rmse_emg);
+    r2_emg = r_squared(EMG_Test, XRecos(1:10,:));
+    fprintf('   The R2 is: %d\n', r2_emg);
+    
+    % Performance for the reconstruction of Forces
+    fprintf('FORCE: Calculating performance indexes...\n')
+    mse_frc = perform(trNet,FORCE_Test, XRecos(11:16,:));
+    rmse_frc = sqrt(mse_frc);
+    fprintf('   The mse is: %d\n   The RMSE is: %d\n',mse_frc,rmse_frc);
+    r2_frc = r_squared(FORCE_Test, XRecos(11:16,:));
+    fprintf('   The R2 is: %d\n', r2_frc);
+    
+    % Inserting into vectors
+    MSE_emg(1,h) = mse_emg;
+    MSE_frc(1,h) = mse_frc;
+    RMSE_emg(1,h) = rmse_emg;
+    RMSE_frc(1,h) = rmse_frc;
+    R2_emg(1,h) = r2_emg;
+    R2_frc(1,h) = r2_frc;
+    
 end
 %% SAVING
 fprintf('Saving...\n');
-% Choose One
-% filename = ['DAESim_sbj', num2str(trSogg), '_allSizes.mat'];
-filename = ['DAESim_n', num2str(h), '_allSbjs.mat'];
+DAEsim.subject = trSogg;
+DAEsim.trainedNet(trSogg,:) = trainedNet;
+DAEsim.trainingReport(trSogg,:) = trainingReport;
+DAEsim.MSE_emg(trSogg,:) = MSE_emg;
+DAEsim.MSE_frc(trSogg,:) = MSE_frc;
+DAEsim.RMSE_emg(trSogg,:) = RMSE_emg;
+DAEsim.RMSE_frc(trSogg,:) = RMSE_frc;
+DAEsim.R2_emg(trSogg,:) = R2_emg;
+DAEsim.R2_frc(trSogg,:) = R2_frc;
+filename = ['DAEsim_sbj', num2str(trSogg), '_allSizes.mat'];
 save(filename,'DAEsim');
 
 %% PLOTTING
