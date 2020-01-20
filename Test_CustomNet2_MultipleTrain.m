@@ -15,7 +15,7 @@ DAEsim.RMSE_emg = zeros(40,10); DAEsim.RMSE_frc = zeros(40,10);
 DAEsim.R2_emg = zeros(40,10); DAEsim.R2_frc = zeros(40,10);
 DAEsim.trainedNet = cell(40,10); DAEsim.trainingReport = cell(40,10);
 
-for trSogg = 1:40
+for trSogg = 1:1
     fprintf('      Subject = %d\n',trSogg);
     EMG_Train = TrainDataSet{trSogg,1}.emg;
     FORCE_Train = TrainDataSet{trSogg,1}.force;
@@ -26,7 +26,7 @@ for trSogg = 1:40
     FORCE_Test = abs(FORCE_Test);
     FORCE_Test = normalize(FORCE_Test,2,'range');
     
-    for h = 4:4
+    for h = 1:10
         fprintf('      H = %d\n',h);
         
         %% CONFIG NET
