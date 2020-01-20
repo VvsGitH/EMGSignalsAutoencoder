@@ -6,8 +6,8 @@ pool = gcp;
 
 %% SETTING UP
 fprintf('Loading Data...\n');
-load TrainDataSet
-load TestDataSet
+load Data_TrainDataset
+load Data_TestDataset
 
 % Select Subject
 trSogg = input('Input Subject Number: ');
@@ -102,25 +102,25 @@ figure(1);
 fprintf('Plotting Signals...\n')
 t1 = 1:1:size(EMG_Test,2);
 for h = 1:10
-    EMG_Recos = DAEsim.trainedNet{DAEsim.subject,h}(EMG_Test,'useParallel','yes');
-    t2 = 1:1:size(EMG_Recos,2);
+    % Calculating XRecos and plotting EMG signals
+    XRecos = DAEsim.trainedNet{DAEsim.subject,h}(EMG_Test,'useParallel','yes');
+    t2 = 1:1:size(XRecos,2);
     figure(2*h)
     for i = 1:10
         subplot(2,5,i)
         plot(t1,EMG_Test(i,:),'b');
         hold on
-        plot(t2,EMG_Recos(i,:),'r');
+        plot(t2,XRecos(i,:),'r');
     end
     sgtitle(['H' num2str(h) ': EMG'])
-    inputWeigths = cell2mat(DAEsim.trainedNet{DAEsim.subject,h}.IW);
-    S_Test = elliotsig(inputWeigths*EMG_Test);
-    FORCE_Recos = DAEsim.emgToForceMatrix{trSogg,h}*S_Test;
+    
+    % Plotting FORCE signals
     figure(2*h+1)
     for i = 1:6
         subplot(2,3,i)
         plot(t1,FORCE_Test(i,:),'b');
         hold on
-        plot(t2,FORCE_Recos(i,:),'r');
+        plot(t2,XRecos(i+10,:),'r');
     end
     sgtitle(['H' num2str(h) ': FORCE'])
 end 

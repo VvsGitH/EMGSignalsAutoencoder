@@ -6,8 +6,8 @@ pool = gcp;
 
 %% SETTING UP
 fprintf('Loading Data...\n');
-load TrainDataSet
-load TestDataSet
+load Data_TrainDataset
+load Data_TestDataset
 
 % Select Subject
 trSogg = input('Input Subject Number: ');
@@ -109,6 +109,7 @@ figure(1);
 fprintf('Plotting Signals...\n')
 t1 = 1:1:size(EMG_Test,2);
 for h = 1:10
+    % Calculating EMG_Recos and plotting EMG signals
     EMG_Recos = AEsim.trainedNet{AEsim.subject,h}(EMG_Test,'useParallel','yes');
     t2 = 1:1:size(EMG_Recos,2);
     figure(2*h)
@@ -119,6 +120,8 @@ for h = 1:10
         plot(t2,EMG_Recos(i,:),'r');
     end
     sgtitle(['H' num2str(h) ': EMG'])
+    
+    % Estimating FORCE_Recos and plotting FORCE signals
     inputWeigths = cell2mat(AEsim.trainedNet{AEsim.subject,h}.IW);
     S_Test = elliotsig(inputWeigths*EMG_Test);
     FORCE_Recos = AEsim.emgToForceMatrix{trSogg,h}*S_Test;
