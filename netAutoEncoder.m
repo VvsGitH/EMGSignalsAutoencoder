@@ -5,7 +5,7 @@ net = feedforwardnet(hiddenSize);
 net.biasConnect = [0;1];    % Il layer d'uscita EMG ha un bias
 
 % Set net functions
-net.trainFcn = 'trainlm'; %'traingda': Gradient Descent with adaptive learning rate %'trainlm': Jacobian derivatives - not supported by GPU; % 'trainscg': Scalar Conjugate Gradient - better for GPU
+net.trainFcn = 'traingda'; %'traingda': Gradient Descent with adaptive learning rate %'trainlm': Jacobian derivatives - not supported by GPU; % 'trainscg': Scalar Conjugate Gradient - better for GPU
 net.performFcn = 'mse'; % Mean Square Error
 net.performParam.regularization = 0; % Minimize only error
 net.performParam.normalization = 'none'; % Take the error as it is
