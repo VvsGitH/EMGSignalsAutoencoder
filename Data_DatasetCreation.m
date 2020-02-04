@@ -77,7 +77,7 @@ mov = [1,2,3,4,7,8];
 
 %% Segmentation of Data
 for s = 1:40 % soggetti
-    fprintf('Segmentation of Subject %d \n',s);
+    fprintf('Segmentation of Subject: %d\n',s);
     ind = [];
     z = [];
     for i = mov % Movimenti
@@ -119,20 +119,22 @@ trainRip = [1 3 5];
 testRip = [2 4 6];
 DataSet = cell(40,1);
 for s = 1:40
-    fprintf('Signal Reunification %d \n',s);
+    fprintf('Signal Reunification for subject: %d \n',s);
     DataSet{s,1}.emg = [];
-    DataSet{s,1}.normforce = [];
+    DataSet{s,1}.force = [];
     DataSet{s,1}.cutforce = [];
     for m = mov
         for r = trainRip            
             DataSet{s,1}.emg = [DataSet{s,1}.emg, Sbj{s,1}.Mov(m).T(r).emg];
-            DataSet{s,1}.force = [DataSet{s,1}.normforce, Sbj{s,1}.Mov(m).T(r).force];
+            DataSet{s,1}.force = [DataSet{s,1}.force, Sbj{s,1}.Mov(m).T(r).force];
             DataSet{s,1}.cutforce = [DataSet{s,1}.cutforce, Sbj{s,1}.Mov(m).T(r).cutforce];
         end
         DataSet{s,1}.separationIndex = size(DataSet{s,1}.emg,2);
+    end
+    for m = mov
         for r = testRip            
             DataSet{s,1}.emg = [DataSet{s,1}.emg, Sbj{s,1}.Mov(m).T(r).emg];
-            DataSet{s,1}.force = [DataSet{s,1}.normforce, Sbj{s,1}.Mov(m).T(r).force];
+            DataSet{s,1}.force = [DataSet{s,1}.force, Sbj{s,1}.Mov(m).T(r).force];
             DataSet{s,1}.cutforce = [DataSet{s,1}.cutforce, Sbj{s,1}.Mov(m).T(r).cutforce];
         end
     end
@@ -140,43 +142,40 @@ end
 
 %% Normalization
 for s = 1:40
-    fprintf('Normalization %d \n',s);
+    fprintf('Signal normalization for subject: %d\n',s);
     % EMG normalization between 0 and 1
     maxEMG = max(DataSet{s,1}.emg,[],2);
-    DataSet{s,1}.emg = normalize(DataSet{s,1}.emg,'range');
+    DataSet{s,1}.emg = normalize(DataSet{s,1}.emg,2,'range',[0,1]);
     DataSet{s,1}.maxEmg = maxEMG;
     
     % Force normalization between -1 and 2
-    maxForce = max(DataSet{s,1}.force,[],1);
-    minForce = min(DataSet{s,1}.force,[],1);
-    DataSet{s,1}.force = normalize(DataSet{s,1}.force,'range',[-1,2]);
+    maxForce = max(DataSet{s,1}.force,[],2);
+    minForce = min(DataSet{s,1}.force,[],2);
+    DataSet{s,1}.force = normalize(DataSet{s,1}.force,2,'range',[-1,2]);
     DataSet{s,1}.maxForce = maxForce;
     DataSet{s,1}.minForce = minForce;
     
     % cutForce normalization between 0 and 2
-    DataSet{s,1}.cutforce = normalize(DataSet{s,1}.cutforce,'range',[0,2]);
+    DataSet{s,1}.cutforce = normalize(DataSet{s,1}.cutforce,2,'range',[0,2]);
 end
 
 %% Test and Train Dataset Generation
-
-fprintf('Generating Train DataSet\n');
-SI = DataSet{s,1}.separationIndex;
+fprintf('Generating Train and Test DataSet\n');
 TrainDataSet = cell(40,1);
+TestDataSet = cell(40,1);
 for s = 1:40
-    TrainDataSet{s,1}.emg = DataSet{s,1}.emg(1:SI);
-    TrainDataSet{s,1}.force = DataSet{s,1}.force(1:SI);
-    TrainDataSet{s,1}.cutforce = DataSet{s,1}.cutforce(1:SI);
+    SI = DataSet{s,1}.separationIndex;
+
+    TrainDataSet{s,1}.emg = DataSet{s,1}.emg(:, 1:SI);
+    TrainDataSet{s,1}.force = DataSet{s,1}.force(:, 1:SI);
+    TrainDataSet{s,1}.cutforce = DataSet{s,1}.cutforce(:, 1:SI);
     TrainDataSet{s,1}.maxEmg = DataSet{s,1}.maxEmg;
     TrainDataSet{s,1}.maxForce = DataSet{s,1}.maxForce;
     TrainDataSet{s,1}.minForce = DataSet{s,1}.minForce;
-end
 
-fprintf('Generating Test DataSet\n');
-TestDataSet = cell(40,1);
-for s = 1:40
-    TestDataSet{s,1}.emg = DataSet{s,1}.emg(SI+1:end);
-    TestDataSet{s,1}.force = DataSet{s,1}.force(SI+1:end);
-    TestDataSet{s,1}.cutforce = DataSet{s,1}.cutforce(SI+1:end);
+    TestDataSet{s,1}.emg = DataSet{s,1}.emg(:, SI+1:end);
+    TestDataSet{s,1}.force = DataSet{s,1}.force(:, SI+1:end);
+    TestDataSet{s,1}.cutforce = DataSet{s,1}.cutforce(:, SI+1:end);
     TestDataSet{s,1}.maxEmg = DataSet{s,1}.maxEmg;
     TestDataSet{s,1}.maxForce = DataSet{s,1}.maxForce;
     TestDataSet{s,1}.minForce = DataSet{s,1}.minForce;
