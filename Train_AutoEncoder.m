@@ -13,10 +13,10 @@ load Data_TestDataset
 trSogg = input('Input Subject Number: ');
 EMG_Train = TrainDataSet{trSogg}.emg;
 FORCE_Train = TrainDataSet{trSogg}.force;
-FORCE_Train_den = Data_Denormalize(FORCE_Train,-1,2,TrainDataSet{trSogg}.maxForce,TrainDataSet{trSogg}.minForce);
+FORCE_Train_den = dataDenormalize(FORCE_Train,-1,2,TrainDataSet{trSogg}.maxForce,TrainDataSet{trSogg}.minForce);
 EMG_Test = TestDataSet{trSogg}.emg;
 FORCE_Test = TestDataSet{trSogg}.force;
-FORCE_Test_den = Data_Denormalize(FORCE_Test,-1,2,TestDataSet{trSogg}.maxForce,TestDataSet{trSogg}.minForce);
+FORCE_Test_den = dataDenormalize(FORCE_Test,-1,2,TestDataSet{trSogg}.maxForce,TestDataSet{trSogg}.minForce);
 
 %% TRAINING/SIMULATION LOOP
 MSE_emg = zeros(1,10); MSE_frc = zeros(1,10);

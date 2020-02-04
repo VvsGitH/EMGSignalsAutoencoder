@@ -14,11 +14,11 @@ trSogg = input('Input Subject Number: ');
 EMG_Train = TrainDataSet{trSogg,1}.emg;
 FORCE_Train = TrainDataSet{trSogg,1}.cutforce;
 MAX = TrainDataSet{trSogg,1}.maxForce;
-%FORCE_Train_den = Data_Denormalize(FORCE_Train,0,2,MAX,0);
+FORCE_Train_den = dataDenormalize(FORCE_Train,0,2,MAX);
 EMG_Test = TestDataSet{trSogg,1}.emg;
 FORCE_Test = TestDataSet{trSogg,1}.cutforce;
 MAX = TestDataSet{trSogg,1}.maxForce;
-% FORCE_Test_den = Data_Denormalize(FORCE_Test,0,2,MAX,0);
+FORCE_Test_den = dataDenormalize(FORCE_Test,0,2,MAX);
 
 %% TRAINING/SIMULATION LOOP
 MSE_emg = zeros(1,10); MSE_frc = zeros(1,10);
