@@ -6,3 +6,4 @@ Data_TestDataset.mat
 Data_TrainDataset.mat
 Test.m
 *.asv
+*.log

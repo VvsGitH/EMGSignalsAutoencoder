@@ -27,7 +27,7 @@ net.layers{2}.transferFcn = 'purelin';
 net.layers{3}.transferFcn = 'purelin';
 net.divideFcn = 'dividetrain'; %Assegna tutti i valori al train
 net.performFcn = 'mse'; % Imposta l'indice di performance come mse      %'msesparse'; % sse
-net.trainFcn = 'trainscg';  % Scalar Conjugate Gradient                  % trainbr, trainscg, traingdm, traingdx
+net.trainFcn = 'traingda';  % Scalar Conjugate Gradient                  % trainbr, trainscg, traingdm, traingdx
 
 % Configuring net for input and output dimensions
 net = configure(net,'inputs',inputData,1);

@@ -12,13 +12,13 @@ load Data_TestDataset
 % Select Subject
 trSogg = input('Input Subject Number: ');
 EMG_Train = TrainDataSet{trSogg,1}.emg;
-FORCE_Train = TrainDataSet{trSogg,1}.force;
-FORCE_Train = abs(FORCE_Train);
-FORCE_Train = normalize(FORCE_Train,2,'range');
+FORCE_Train = TrainDataSet{trSogg,1}.cutforce;
+MAX = TrainDataSet{trSogg,1}.maxForce;
+%FORCE_Train_den = Data_Denormalize(FORCE_Train,0,2,MAX,0);
 EMG_Test = TestDataSet{trSogg,1}.emg;
-FORCE_Test = TestDataSet{trSogg,1}.force;
-FORCE_Test = abs(FORCE_Test);
-FORCE_Test = normalize(FORCE_Test,2,'range');
+FORCE_Test = TestDataSet{trSogg,1}.cutforce;
+MAX = TestDataSet{trSogg,1}.maxForce;
+% FORCE_Test_den = Data_Denormalize(FORCE_Test,0,2,MAX,0);
 
 %% TRAINING/SIMULATION LOOP
 MSE_emg = zeros(1,10); MSE_frc = zeros(1,10);
@@ -29,7 +29,7 @@ trainedNet = cell(1,10); trainingReport = cell(1,10);
 parfor h = 1:10
     
     fprintf('H%d: Generating Net...\n',h);
-    net = netDoubleAutoEncoder(h, EMG_Train, FORCE_Train, 1000, 1e-05, 0);
+    net = netDoubleAutoEncoder(h, EMG_Train, FORCE_Train, 5000, 1e-05, 0);
     
     %% TRAINING
     fprintf('H%d: Training...\n',h);
@@ -67,14 +67,14 @@ end
 %% SAVING
 fprintf('Generating Structure...\n');
 DAEsim.subject = trSogg;
-DAEsim.trainedNet(trSogg,:) = trainedNet;
-DAEsim.trainingReport(trSogg,:) = trainingReport;
-DAEsim.MSE_emg(trSogg,:) = MSE_emg;
-DAEsim.MSE_frc(trSogg,:) = MSE_frc;
-DAEsim.RMSE_emg(trSogg,:) = RMSE_emg;
-DAEsim.RMSE_frc(trSogg,:) = RMSE_frc;
-DAEsim.R2_emg(trSogg,:) = R2_emg;
-DAEsim.R2_frc(trSogg,:) = R2_frc;
+DAEsim.trainedNet = trainedNet';
+DAEsim.trainingReport = trainingReport';
+DAEsim.MSE_emg = MSE_emg';
+DAEsim.MSE_frc = MSE_frc';
+DAEsim.RMSE_emg = RMSE_emg';
+DAEsim.RMSE_frc = RMSE_frc';
+DAEsim.R2_emg = R2_emg';
+DAEsim.R2_frc = R2_frc';
 
 if (input('Save the file? [Y,N]\n','s') == 'Y')
     fprintf('Saving...\n');
@@ -87,23 +87,23 @@ fprintf('Plotting Performance Indexes...\n')
 h = 1:10;
 figure(1);
     subplot(2,3,1)
-    plot(h,DAEsim.MSE_emg(DAEsim.subject,:)), title('EMG MSE');
+    plot(h,DAEsim.MSE_emg), title('EMG MSE');
     subplot(2,3,2)
-    plot(h,DAEsim.RMSE_emg(DAEsim.subject,:)), title('EMG RMSE');
+    plot(h,DAEsim.RMSE_emg), title('EMG RMSE');
     subplot(2,3,3)
-    plot(h,DAEsim.R2_emg(DAEsim.subject,:)), title('EMG R2');
+    plot(h,DAEsim.R2_emg), title('EMG R2');
     subplot(2,3,4)
-    plot(h,DAEsim.MSE_frc(DAEsim.subject,:)), title('FORCE MSE');
+    plot(h,DAEsim.MSE_frc), title('FORCE MSE');
     subplot(2,3,5)
-    plot(h,DAEsim.RMSE_frc(DAEsim.subject,:)), title('FORCE RMSE');
+    plot(h,DAEsim.RMSE_frc), title('FORCE RMSE');
     subplot(2,3,6)
-    plot(h,DAEsim.R2_frc(DAEsim.subject,:)), title('FORCE R2');    
+    plot(h,DAEsim.R2_frc), title('FORCE R2');    
 
 fprintf('Plotting Signals...\n')
 t1 = 1:1:size(EMG_Test,2);
 for h = 1:10
     % Calculating XRecos and plotting EMG signals
-    XRecos = DAEsim.trainedNet{DAEsim.subject,h}(EMG_Test,'useParallel','yes');
+    XRecos = DAEsim.trainedNet{h}(EMG_Test,'useParallel','yes');
     t2 = 1:1:size(XRecos,2);
     figure(2*h)
     for i = 1:10
