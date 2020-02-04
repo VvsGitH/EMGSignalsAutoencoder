@@ -43,10 +43,10 @@ parfor h = 1:10
     %% FORCE RECONSTRUCTION
     fprintf('H%d: Force Reconstruction...\n',h);
     inputWeigths = cell2mat(trNet.IW);
-    S_Train = elliotsig(inputWeigths*EMG_Train);
+    S_Train = poslin(inputWeigths*EMG_Train); % tf -> poslin
     Hae = FORCE_Train_den*pinv(S_Train);
     emgToForceMatrix{1,h} = Hae;
-    S_Test = elliotsig(inputWeigths*EMG_Test);
+    S_Test = poslin(inputWeigths*EMG_Test); % tf -> poslin
     FORCE_Recos = Hae*S_Test;
     
     %% PERFORMANCE
@@ -112,7 +112,7 @@ fprintf('Plotting Signals...\n')
 t1 = 1:1:size(EMG_Test,2);
 for h = 1:10
     % Calculating EMG_Recos and plotting EMG signals
-    EMG_Recos = AEsim.trainedNet{AEsim.subject,h}(EMG_Test,'useParallel','yes');
+    EMG_Recos = AEsim.trainedNet{h}(EMG_Test,'useParallel','yes');
     t2 = 1:1:size(EMG_Recos,2);
     figure(2*h)
     for i = 1:10
