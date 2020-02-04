@@ -11,10 +11,12 @@ load Data_TestDataset
 
 % Select Subject
 trSogg = input('Input Subject Number: ');
-EMG_Train = TrainDataSet{trSogg,1}.emg;
-FORCE_Train = TrainDataSet{trSogg,1}.force;
-EMG_Test = TestDataSet{trSogg,1}.emg;
-FORCE_Test = TestDataSet{trSogg,1}.force;
+EMG_Train = TrainDataSet{trSogg}.emg;
+FORCE_Train = TrainDataSet{trSogg}.force;
+FORCE_Train_den = Data_Denormalize(FORCE_Train,-1,2,TrainDataSet{trSogg}.maxForce,TrainDataSet{trSogg}.minForce);
+EMG_Test = TestDataSet{trSogg}.emg;
+FORCE_Test = TestDataSet{trSogg}.force;
+FORCE_Test_den = Data_Denormalize(FORCE_Test,-1,2,TestDataSet{trSogg}.maxForce,TestDataSet{trSogg}.minForce);
 
 %% TRAINING/SIMULATION LOOP
 MSE_emg = zeros(1,10); MSE_frc = zeros(1,10);
@@ -42,7 +44,7 @@ parfor h = 1:10
     fprintf('H%d: Force Reconstruction...\n',h);
     inputWeigths = cell2mat(trNet.IW);
     S_Train = elliotsig(inputWeigths*EMG_Train);
-    Hae = FORCE_Train*pinv(S_Train);
+    Hae = FORCE_Train_den*pinv(S_Train);
     emgToForceMatrix{1,h} = Hae;
     S_Test = elliotsig(inputWeigths*EMG_Test);
     FORCE_Recos = Hae*S_Test;
@@ -56,7 +58,7 @@ parfor h = 1:10
     
     % Performance for the reconstruction of Forces
     fprintf('H%d_FORCE: Calculating performance indexes...\n',h)
-    [mse_frc, rmse_frc, r2_frc] = netPerformance(FORCE_Test, FORCE_Recos);
+    [mse_frc, rmse_frc, r2_frc] = netPerformance(FORCE_Test_den, FORCE_Recos);
     fprintf('   The mse is: %d\n   The RMSE is: %d\n   The R2 is: %d\n',...
         mse_frc,rmse_frc,r2_frc);
     
