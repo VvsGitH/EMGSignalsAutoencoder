@@ -12,32 +12,32 @@ load Data_FullDataset
 trSogg = input('Input Subject Number: ');
 
 % Naming variable for a clean code
-EMG = DataSet{trSogg}.emg;
+EMG   = DataSet{trSogg}.emg;
 FORCE = DataSet{trSogg}.cutforce;
 % FORCE_den = dataDenormalize(FORCE, 0, 2, DataSet{trSogg}.maxForce);
 
-% Dividing train test and validation for simulation and force reconstruction 
+% Dividing train test and validation for simulation and force reconstruction
 TI = DataSet{trSogg}.testIndex; VI = DataSet{trSogg}.validIndex; END = length(DataSet{trSogg}.emg);
-[EMG_Train, EMG_Valid, EMG_Test] = divideind(EMG, 1:TI-1, VI:END,  TI:VI-1);
-[FORCE_Train, FORCE_Valid, FORCE_Test] = divideind(FORCE, 1:TI-1, VI:END,  TI:VI-1);
+[EMG_Train, EMG_Valid, EMG_Test]        = divideind(EMG, 1:TI-1, VI:END, TI:VI-1);
+[FORCE_Train, FORCE_Valid, FORCE_Test]  = divideind(FORCE, 1:TI-1, VI:END, TI:VI-1);
 
 % [Optional]: uncomment if you want to use divedetrain
-EMG = EMG_Train;
-FORCE = FORCE_Train;
-EMG_Test = [EMG_Test, EMG_Valid];
-FORCE_Test = [FORCE_Test, FORCE_Valid];
+% EMG         = EMG_Train;
+% FORCE       = FORCE_Train;
+% EMG_Test    = [EMG_Test, EMG_Valid];
+% FORCE_Test  = [FORCE_Test, FORCE_Valid];
 
 %% TRAINING/SIMULATION LOOP
-MSE_emg = zeros(1,10); MSE_frc = zeros(1,10);
-RMSE_emg = zeros(1,10); RMSE_frc = zeros(1,10);
-R2_emg = zeros(1,10); R2_frc = zeros(1,10);
-trainedNet = cell(1,10); trainingReport = cell(1,10);    
-    
-for h = 6
+MSE_emg    = zeros(1,10); MSE_frc        = zeros(1,10);
+RMSE_emg   = zeros(1,10); RMSE_frc       = zeros(1,10);
+R2_emg     = zeros(1,10); R2_frc         = zeros(1,10);
+trainedNet = cell(1,10);  trainingReport = cell(1,10);
+
+parfor h = 1:10
     
     fprintf('H%d: Generating Net...\n',h);
-    net = netDoubleAutoEncoder(h, EMG, FORCE, 5000);
-    % net = netDoubleAutoEncoder(h, EMG, FORCE, 5000, [TI, VI, END]);
+    % net = netDoubleAutoEncoder(h, EMG, FORCE, 10000);
+    net = netDoubleAutoEncoder(h, EMG, FORCE, 10000, [TI, VI, END]);
     
     %% TRAINING
     fprintf('H%d: Training...\n',h);
@@ -108,7 +108,7 @@ figure(1);
     subplot(2,3,5)
     plot(h,DAEsim.RMSE_frc), title('FORCE RMSE');
     subplot(2,3,6)
-    plot(h,DAEsim.R2_frc), title('FORCE R2');    
+    plot(h,DAEsim.R2_frc), title('FORCE R2');
 
 fprintf('Plotting Signals...\n')
 t1 = 1:1:size(EMG_Test,2);
@@ -134,5 +134,5 @@ for h = 1:10
         plot(t2,XRecos(i+10,:),'r');
     end
     sgtitle(['H' num2str(h) ': FORCE'])
-end 
+end
 
