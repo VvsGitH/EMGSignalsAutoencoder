@@ -6,17 +6,25 @@ pool = gcp;
 
 %% SETTING UP
 fprintf('Loading Data...\n');
-load Data_TrainDataset
-load Data_TestDataset
+load Data_FullDataset
 
 % Select Subject
 trSogg = input('Input Subject Number: ');
-EMG_Train = TrainDataSet{trSogg}.emg;
-FORCE_Train = TrainDataSet{trSogg}.force;
-FORCE_Train_den = dataDenormalize(FORCE_Train,-1,2,TrainDataSet{trSogg}.maxForce,TrainDataSet{trSogg}.minForce);
-EMG_Test = TestDataSet{trSogg}.emg;
-FORCE_Test = TestDataSet{trSogg}.force;
-FORCE_Test_den = dataDenormalize(FORCE_Test,-1,2,TestDataSet{trSogg}.maxForce,TestDataSet{trSogg}.minForce);
+
+% Naming variable for a clean code
+EMG = DataSet{trSogg}.emg;
+FORCE = DataSet{trSogg}.force;
+FORCE_den = dataDenormalize(FORCE, -1, 2, DataSet{trSogg}.maxForce, DataSet{trSogg}.minForce);
+
+% Dividing train test and validation for simulation and force reconstruction 
+TI = DataSet{trSogg}.testIndex; VI = DataSet{trSogg}.validIndex; END = length(DataSet{trSogg}.emg);
+[EMG_Train, EMG_Valid, EMG_Test] = divideind(EMG, 1:TI-1, VI:END,  TI:VI-1);
+[FORCE_Train_den, FORCE_Valid_den, FORCE_Test_den] = divideind(FORCE_den, 1:TI-1, VI:END,  TI:VI-1);
+
+% [Optional]: uncomment if you want to use divedetrain
+% EMG = EMG_Train;
+% EMG_Test = [EMG_Test, EMG_Valid];
+% FORCE_Test = [FORCE_Test, FORCE_Valid];
 
 %% TRAINING/SIMULATION LOOP
 MSE_emg = zeros(1,10); MSE_frc = zeros(1,10);
@@ -28,11 +36,11 @@ emgToForceMatrix = cell(1,10);
 parfor h = 1:10
     
     fprintf('H%d: Generating Net...\n',h);
-    net = netAutoEncoder(h, EMG_Train, 5000, 1e-05, 0);
+    net = netAutoEncoder(h, EMG, 5000, [TI, VI, END]);
     
     %% TRAINING
     fprintf('H%d: Training...\n',h);
-    [trNet, tr] = train(net,EMG_Train,EMG_Train,'useParallel','no');
+    [trNet, tr] = train(net,EMG,EMG,'useParallel','no');
     trainedNet{1,h} = trNet;
     trainingReport{1,h} = tr;
     
@@ -85,10 +93,13 @@ AEsim.RMSE_frc = RMSE_frc';
 AEsim.R2_emg = R2_emg';
 AEsim.R2_frc = R2_frc';
 
-if (input('Save the file? [Y,N]\n','s') == 'Y')
+if (upper(input('Save the file? [Y,N]\n','s')) == 'Y')
+    fprintf('Insert the filename: (press enter to use the default one)\n');
+    filename = ['AEsim_sbj', num2str(trSogg), '_allSizes'];
+    filename = [filename, input(filename,'s'),'.mat'];
     fprintf('Saving...\n');
-    filename = ['AEsim_sbj', num2str(trSogg), '_allSizes.mat'];
     save(filename,'AEsim');
+    fprintf('%s saved!\n',filename);
 end
 
 %% PLOTTING

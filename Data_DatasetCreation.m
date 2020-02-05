@@ -63,7 +63,8 @@ for s = 1:40
    
 end
 
-%% Remove Unused Movements
+%% Segmentation of Data
+% Movements List
 %   1   |   Little Finger Flexion
 %   2   |   Ring Finger Flexion
 %   3   |   Medium Finger Flexion
@@ -75,22 +76,35 @@ end
 %   9   X   Thumb and Index Flexion
 mov = [1,2,3,4,7,8];
 
-%% Segmentation of Data
-for s = 1:40 % soggetti
+% Segmentation: dividing the EMG and Force signals into their different
+% movements. 6rip x 6mov = 36 blocks. In this way we can eliminate
+% the zeros and the movements we do not want to study and we can easily
+% reorganize the order of the blocks for the creation of the dataset.
+% For the segmentation we use the restimulus: a rectangular wave signal
+% that indicates the movements done by the subject; the height of the
+% rectangle indicates the movement; the length of the rectangle indicates
+% the duration.
+
+for s = 1:40
     fprintf('Segmentation of Subject: %d\n',s);
     ind = [];
     z = [];
-    for i = mov % Movimenti
-        ind = find(Sbj{s,1}.restimulus==i);
-        ind2 = zeros(1, length(ind));
-        for r = 2:length(ind)-1 % Ripetizioni
-            if (ind(r) ~= ind(r-1)+1)
-                ind2(r) = 1;
-            elseif  ind(r)+1 ~= ind(r+1)
-                ind2(r) = 1;
+    for i = mov                                 % For each one of the selected Movements
+        ind = find(Sbj{s,1}.restimulus==i);     % Ind contains the indexes of the elements of restimulus equals to the number of the movement
+        ind2 = zeros(1, length(ind));           % Ind2 will be equal to 1 when an two elements of ind are not consecutive
+        for j = 2:length(ind)-1                 % For each element of ind, starting from the second
+            if (ind(j) ~= ind(j-1)+1)           % Searching for the starting corners of the restimulus signal
+                ind2(j) = 1;
+            elseif  ind(j)+1 ~= ind(j+1)        % Searching for the ending corners of the restimulus signal
+                ind2(j) = 1;
             end
         end
-        z = [ind(1),ind(ind2==1)',ind(end)];
+        
+        % The repetitions of the movement i start in ind(1) and end in
+        % ind(end). However theese repetitions are interrupted by pauses:
+        % ind2 is equal to 1 at the start and end of theese pauses.
+        z = [ind(1),ind(ind2==1)',ind(end)];    % z has 12 elements: the corners of each repetitions
+        
         Sbj{s,1}.Mov(i).T(1).emg = Sbj{s,1}.emgpp(z(1):z(2),:)';
         Sbj{s,1}.Mov(i).T(2).emg = Sbj{s,1}.emgpp(z(3):z(4),:)';
         Sbj{s,1}.Mov(i).T(3).emg = Sbj{s,1}.emgpp(z(5):z(6),:)';
@@ -115,24 +129,43 @@ for s = 1:40 % soggetti
 end
 
 %% Reunification of the signal
-trainRip = [1 3 5];
-testRip = [2 4 6];
+% Selecting the way the dataset will be divided
+trainRip = [1 3 5];     % Repetitions for the train set
+testRip = [2 6];        % Repetitions for the test set
+validRip = 4;           % Repetitions for the validation set
+
+% All repetitions and movements will be put one after the other, but in a
+% different order from the starting one: TrainSet TestSet ValidSet
+% In each set the repetitions and the movements are ordered like this:
+% MiRj MiRj+1 ... MiRk Mi+1Rj Mi+1Rj+1 ... Mi+1Rk ... MwRk
+
 DataSet = cell(40,1);
 for s = 1:40
     fprintf('Signal Reunification for subject: %d \n',s);
     DataSet{s,1}.emg = [];
     DataSet{s,1}.force = [];
     DataSet{s,1}.cutforce = [];
+    % Train set
     for m = mov
         for r = trainRip            
             DataSet{s,1}.emg = [DataSet{s,1}.emg, Sbj{s,1}.Mov(m).T(r).emg];
             DataSet{s,1}.force = [DataSet{s,1}.force, Sbj{s,1}.Mov(m).T(r).force];
             DataSet{s,1}.cutforce = [DataSet{s,1}.cutforce, Sbj{s,1}.Mov(m).T(r).cutforce];
         end
-        DataSet{s,1}.separationIndex = size(DataSet{s,1}.emg,2);
     end
+    % Test set
+    DataSet{s,1}.testIndex = size(DataSet{s,1}.emg,2)+1;    % Starting index of the test set
     for m = mov
         for r = testRip            
+            DataSet{s,1}.emg = [DataSet{s,1}.emg, Sbj{s,1}.Mov(m).T(r).emg];
+            DataSet{s,1}.force = [DataSet{s,1}.force, Sbj{s,1}.Mov(m).T(r).force];
+            DataSet{s,1}.cutforce = [DataSet{s,1}.cutforce, Sbj{s,1}.Mov(m).T(r).cutforce];
+        end
+    end
+    % Validation set
+    DataSet{s,1}.validIndex = size(DataSet{s,1}.emg,2)+1;   % Starting index of the validation set
+    for m = mov
+        for r = validRip            
             DataSet{s,1}.emg = [DataSet{s,1}.emg, Sbj{s,1}.Mov(m).T(r).emg];
             DataSet{s,1}.force = [DataSet{s,1}.force, Sbj{s,1}.Mov(m).T(r).force];
             DataSet{s,1}.cutforce = [DataSet{s,1}.cutforce, Sbj{s,1}.Mov(m).T(r).cutforce];
@@ -159,31 +192,10 @@ for s = 1:40
     DataSet{s,1}.cutforce = normalize(DataSet{s,1}.cutforce,2,'range',[0,2]);
 end
 
-%% Test and Train Dataset Generation
-fprintf('Generating Train and Test DataSet\n');
-TrainDataSet = cell(40,1);
-TestDataSet = cell(40,1);
-for s = 1:40
-    SI = DataSet{s,1}.separationIndex;
-
-    TrainDataSet{s,1}.emg = DataSet{s,1}.emg(:, 1:SI);
-    TrainDataSet{s,1}.force = DataSet{s,1}.force(:, 1:SI);
-    TrainDataSet{s,1}.cutforce = DataSet{s,1}.cutforce(:, 1:SI);
-    TrainDataSet{s,1}.maxEmg = DataSet{s,1}.maxEmg;
-    TrainDataSet{s,1}.maxForce = DataSet{s,1}.maxForce;
-    TrainDataSet{s,1}.minForce = DataSet{s,1}.minForce;
-
-    TestDataSet{s,1}.emg = DataSet{s,1}.emg(:, SI+1:end);
-    TestDataSet{s,1}.force = DataSet{s,1}.force(:, SI+1:end);
-    TestDataSet{s,1}.cutforce = DataSet{s,1}.cutforce(:, SI+1:end);
-    TestDataSet{s,1}.maxEmg = DataSet{s,1}.maxEmg;
-    TestDataSet{s,1}.maxForce = DataSet{s,1}.maxForce;
-    TestDataSet{s,1}.minForce = DataSet{s,1}.minForce;
+%% Saving Full Dataset
+if (upper(input('Save the file? [Y,N]\n','s')) == 'Y')
+    fprintf('Saving...\n');
+    save('Data_FullDataset.mat', 'DataSet')
+    fprintf('Saving completed!\n');
 end
-
-%% Saving Dataset
-fprintf('Saving...\n');
-save('Data_TrainDataset.mat', 'TrainDataSet');
-save('Data_TestDataset.mat', 'TestDataSet');
-
 
