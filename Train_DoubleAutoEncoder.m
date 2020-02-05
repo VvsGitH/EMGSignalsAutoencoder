@@ -6,19 +6,26 @@ pool = gcp;
 
 %% SETTING UP
 fprintf('Loading Data...\n');
-load Data_TrainDataset
-load Data_TestDataset
+load Data_FullDataset
 
 % Select Subject
 trSogg = input('Input Subject Number: ');
-EMG_Train = TrainDataSet{trSogg,1}.emg;
-FORCE_Train = TrainDataSet{trSogg,1}.cutforce;
-MAX = TrainDataSet{trSogg,1}.maxForce;
-FORCE_Train_den = dataDenormalize(FORCE_Train,0,2,MAX);
-EMG_Test = TestDataSet{trSogg,1}.emg;
-FORCE_Test = TestDataSet{trSogg,1}.cutforce;
-MAX = TestDataSet{trSogg,1}.maxForce;
-FORCE_Test_den = dataDenormalize(FORCE_Test,0,2,MAX);
+
+% Naming variable for a clean code
+EMG = DataSet{trSogg}.emg;
+FORCE = DataSet{trSogg}.cutforce;
+% FORCE_den = dataDenormalize(FORCE, 0, 2, DataSet{trSogg}.maxForce);
+
+% Dividing train test and validation for simulation and force reconstruction 
+TI = DataSet{trSogg}.testIndex; VI = DataSet{trSogg}.validIndex; END = length(DataSet{trSogg}.emg);
+[EMG_Train, EMG_Valid, EMG_Test] = divideind(EMG, 1:TI-1, VI:END,  TI:VI-1);
+[FORCE_Train, FORCE_Valid, FORCE_Test] = divideind(FORCE, 1:TI-1, VI:END,  TI:VI-1);
+
+% [Optional]: uncomment if you want to use divedetrain
+EMG = EMG_Train;
+FORCE = FORCE_Train;
+EMG_Test = [EMG_Test, EMG_Valid];
+FORCE_Test = [FORCE_Test, FORCE_Valid];
 
 %% TRAINING/SIMULATION LOOP
 MSE_emg = zeros(1,10); MSE_frc = zeros(1,10);
@@ -26,14 +33,15 @@ RMSE_emg = zeros(1,10); RMSE_frc = zeros(1,10);
 R2_emg = zeros(1,10); R2_frc = zeros(1,10);
 trainedNet = cell(1,10); trainingReport = cell(1,10);    
     
-parfor h = 5:10
+for h = 6
     
     fprintf('H%d: Generating Net...\n',h);
-    net = netDoubleAutoEncoder(h, EMG_Train, FORCE_Train, 10000, 1e-05, 0);
+    net = netDoubleAutoEncoder(h, EMG, FORCE, 5000);
+    % net = netDoubleAutoEncoder(h, EMG, FORCE, 5000, [TI, VI, END]);
     
     %% TRAINING
     fprintf('H%d: Training...\n',h);
-    [trNet, tr] = train(net,EMG_Train,[EMG_Train; FORCE_Train],'useParallel','no');
+    [trNet, tr] = train(net,EMG,[EMG; FORCE],'useParallel','no');
     trainedNet{1,h} = trNet;
     trainingReport{1,h} = tr;
     
@@ -76,10 +84,13 @@ DAEsim.RMSE_frc = RMSE_frc';
 DAEsim.R2_emg = R2_emg';
 DAEsim.R2_frc = R2_frc';
 
-if (input('Save the file? [Y,N]\n','s') == 'Y')
+if (upper(input('Save the file? [Y,N]\n','s')) == 'Y')
+    fprintf('Insert the filename: (press enter to use the default one)\n');
+    filename = ['DAEsim_sbj', num2str(trSogg), '_allSizes'];
+    filename = [filename, input(filename,'s'),'.mat'];
     fprintf('Saving...\n');
-    filename = ['DAEsim_sbj', num2str(trSogg), '_allSizes.mat'];
     save(filename,'DAEsim');
+    fprintf('%s saved!\n',filename);
 end
 
 %% PLOTTING
