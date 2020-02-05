@@ -26,10 +26,10 @@ RMSE_emg = zeros(1,10); RMSE_frc = zeros(1,10);
 R2_emg = zeros(1,10); R2_frc = zeros(1,10);
 trainedNet = cell(1,10); trainingReport = cell(1,10);    
     
-parfor h = 1:10
+parfor h = 5:10
     
     fprintf('H%d: Generating Net...\n',h);
-    net = netDoubleAutoEncoder(h, EMG_Train, FORCE_Train, 5000, 1e-05, 0);
+    net = netDoubleAutoEncoder(h, EMG_Train, FORCE_Train, 10000, 1e-05, 0);
     
     %% TRAINING
     fprintf('H%d: Training...\n',h);

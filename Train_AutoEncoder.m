@@ -25,7 +25,7 @@ R2_emg = zeros(1,10); R2_frc = zeros(1,10);
 trainedNet = cell(1,10); trainingReport = cell(1,10);
 emgToForceMatrix = cell(1,10);
 
-parfor h = 1:10
+parfor h = 6
     
     fprintf('H%d: Generating Net...\n',h);
     net = netAutoEncoder(h, EMG_Train, 5000, 1e-05, 0);
@@ -93,7 +93,7 @@ end
 
 %% PLOTTING
 fprintf('Plotting Performance Indexes...\n')
-h = 1:10;
+h = 6;
 figure(1);
     subplot(2,3,1)
     plot(h,AEsim.MSE_emg), title('EMG MSE');
