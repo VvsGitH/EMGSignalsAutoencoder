@@ -52,6 +52,7 @@ emgToForceMatrix = cell(1,10);
 parfor h = 1:10
     
     fprintf('H%d: Generating Net...\n',h);
+    net = network;
     if setDivision == 1
         net = netAutoEncoder(h, EMG, 10000, [TI, VI, END]); % divideind
     elseif setDivision == 2
