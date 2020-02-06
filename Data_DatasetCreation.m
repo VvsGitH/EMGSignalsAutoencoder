@@ -1,7 +1,9 @@
+close all
 clearvars 
 clc
 
 %% Load data
+% Loading NinaPro Databes files from './Daniel & Roberto/DB2'
 ttds=tabularTextDatastore('./Daniel & Roberto/DB2','FileExtensions','.mat','NumHeaderLines',129);
 Sbj = cell(40,1);
 for s=1:40
@@ -18,35 +20,35 @@ for s = 1:40
 end
 
 %% Post Processing
-f = 2000; %sampling frequency
-ne = 10; %number of electrodes
+f  = 2000; % sampling frequency
+ne = 10;   % number of electrodes
 for s = 1:40
     fprintf('PostProcessing of Subject: %d\n',s);
-    %% band-pass filtering 20-500 Hz
-    % Serve a ridurre le oscillazione dei segnali EMG
+    %% Band-Pass filtering 20-500 Hz
+    % Reduce obscillations of EMG signals
     bpl = 20;
     bph = 500;
     Wn = [bpl/(f/2),bph/(f/2)];
     [b,a] = butter(2,Wn,'bandpass');
     emgf = filter(b,a,Sbj{s,1}.emg);
     
-    %% rectification
-    % Per renderlo non negativo
+    %% Rectification
+    % Make the EMG signal non-negative
     emgfr = abs(emgf);
     
-    %% low-pass filtering 2 Hz
-    % Smoothing del segnale
+    %% Low-Pass filtering 2 Hz
+    % Signal smoothing
     l = 2;
     Wn = l/(f/2);
     [b,a] = butter(2,Wn,'low');
     emgfrl = filter(b,a,emgfr);
     
     %% cross correlation to adjust delay
-    % Il filtraggio applica un delay. La cross-correlazione riallinea il
-    % segnale filtrato con quello orginale
+    % Filtering applies a delay to the signal. Cross-Correlation realigns
+    % the filtered signal with the original
     t = size(Sbj{s,1}.emg,1);
     for i = 1:ne
-        [rr,lags] = xcorr(emgfr(:,i)',emgfrl(:,i)'); %estimate delay
+        [rr,lags] = xcorr(emgfr(:,i)',emgfrl(:,i)'); % estimate delay
         [~,d] = max(rr);
         d = t-d;
         emgfrl(:,i) = [emgfrl((d+1:t)',i);zeros(d,1)];
