@@ -12,9 +12,11 @@ load Data_FullDataset
 trSogg = input('Input Subject Number: ');
 
 % Naming variable for a clean code
-EMG = DataSet{trSogg}.emg;
-FORCE = DataSet{trSogg}.force;
-FORCE_den = dataDenormalize(FORCE, -1, 2, DataSet{trSogg}.maxForce, DataSet{trSogg}.minForce);
+EMG         = DataSet{trSogg}.emg;
+% FORCE     = DataSet{trSogg}.force;
+% FORCE_den = dataDenormalize(FORCE, -1, 1, DataSet{trSogg}.maxForce, DataSet{trSogg}.minForce);
+FORCE       = DataSet{trSogg}.cutforce;
+FORCE_den   = dataDenormalize(FORCE, 0, 1, DataSet{trSogg}.maxForce);
 
 % Dividing train test and validation for simulation and force reconstruction 
 TI = DataSet{trSogg}.testIndex; VI = DataSet{trSogg}.validIndex; END = length(DataSet{trSogg}.emg);

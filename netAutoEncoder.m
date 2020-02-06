@@ -32,8 +32,8 @@ net.performParam.normalization  = 'none';   % Take the error as it is
 net.trainFcn                    = 'traingda';     %'traingda': Gradient Descent with adaptive learning rate 
 net.trainParam.epochs           = maxEpochs;
 net.trainParam.min_grad         = 0;
-net.trainParam.goal             = 1e-05;
-net.trainParam.max_fail         = 50;
+net.trainParam.goal             = 1e-04;
+net.trainParam.max_fail         = 100;
 net.trainParam.showWindow       = 1;
 
 % Configuring net for data dimensions

@@ -12,9 +12,15 @@ load Data_FullDataset
 trSogg = input('Input Subject Number: ');
 
 % Naming variable for a clean code
-EMG   = DataSet{trSogg}.emg;
-FORCE = DataSet{trSogg}.cutforce;
-% FORCE_den = dataDenormalize(FORCE, 0, 2, DataSet{trSogg}.maxForce);
+EMG         = DataSet{trSogg}.emg;
+% FORCE     = DataSet{trSogg}.force;
+% FORCE_den = dataDenormalize(FORCE, -1, 1, DataSet{trSogg}.maxForce, DataSet{trSogg}.minForce);
+FORCE       = DataSet{trSogg}.cutforce;
+FORCE_den   = dataDenormalize(FORCE, 0, 1, DataSet{trSogg}.maxForce);
+
+% Uniforming output weigths
+EMG         = EMG.*0.8;
+FORCE       = FORCE.*1.35;
 
 % Dividing train test and validation for simulation and force reconstruction
 TI = DataSet{trSogg}.testIndex; VI = DataSet{trSogg}.validIndex; END = length(DataSet{trSogg}.emg);

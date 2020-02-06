@@ -30,7 +30,7 @@ net.initFcn                     = 'initlay';    % Chiama le funzioni di iniziali
 % Layers transfer functions
 net.layers{1}.transferFcn       = 'poslin';
 net.layers{2}.transferFcn       = 'purelin';
-net.layers{3}.transferFcn       = 'purelin';
+net.layers{3}.transferFcn       = 'poslin';
 
 % Divide function
 if nargin == 4
@@ -51,8 +51,8 @@ net.performParam.normalization  = 'none';       % Take the error as it is
 net.trainFcn                    = 'traingda';   % Gradient Descent with adaptive learning rate
 net.trainParam.epochs           = maxEpochs;
 net.trainParam.min_grad         = 0;
-net.trainParam.goal             = 1e-05;
-net.trainParam.max_fail         = 100;
+net.trainParam.goal             = 1e-04;
+net.trainParam.max_fail         = 300;
 net.trainParam.showWindow       = 1;
 
 % Configuring net for input and output dimensions

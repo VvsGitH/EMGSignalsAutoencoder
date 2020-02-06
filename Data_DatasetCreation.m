@@ -181,15 +181,15 @@ for s = 1:40
     DataSet{s,1}.emg = normalize(DataSet{s,1}.emg,2,'range',[0,1]);
     DataSet{s,1}.maxEmg = maxEMG;
     
-    % Force normalization between -1 and 2
+    % Force normalization between -1 and 1
     maxForce = max(DataSet{s,1}.force,[],2);
     minForce = min(DataSet{s,1}.force,[],2);
-    DataSet{s,1}.force = normalize(DataSet{s,1}.force,2,'range',[-1,2]);
+    DataSet{s,1}.force = normalize(DataSet{s,1}.force,2,'range',[-1,1]);
     DataSet{s,1}.maxForce = maxForce;
     DataSet{s,1}.minForce = minForce;
     
-    % cutForce normalization between 0 and 2
-    DataSet{s,1}.cutforce = normalize(DataSet{s,1}.cutforce,2,'range',[0,2]);
+    % cutForce normalization between 0 and 1
+    DataSet{s,1}.cutforce = normalize(DataSet{s,1}.cutforce,2,'range',[0,1]);
 end
 
 %% Saving Full Dataset

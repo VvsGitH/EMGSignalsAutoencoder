@@ -8,3 +8,5 @@ Data_FullDataset.mat
 Test.m
 *.asv
 *.log
+*.fig
+*.jpeg
