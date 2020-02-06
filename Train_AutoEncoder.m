@@ -10,23 +10,37 @@ load Data_FullDataset
 
 % Select Subject
 trSogg = input('Input Subject Number: ');
+while all(1:40 ~= trSogg)
+    trSogg = input('The chosen subject is not existent!\nInput Subject Number: ');
+end
 
 % Naming variable for a clean code
 EMG         = DataSet{trSogg}.emg;
-% FORCE     = DataSet{trSogg}.force;
-% FORCE_den = dataDenormalize(FORCE, -1, 1, DataSet{trSogg}.maxForce, DataSet{trSogg}.minForce);
-FORCE       = DataSet{trSogg}.cutforce;
-FORCE_den   = dataDenormalize(FORCE, 0, 1, DataSet{trSogg}.maxForce);
+forceOption = input('Press 1 for normalized force or 2 for normalized positive only force: ');
+while all(1:2 ~= forceOption)
+    forceOption = input('Option not find!\nPress 1 for normalized force or 2 for normalized positive only force: ');
+end
+if forceOption == 1
+    FORCE     = DataSet{trSogg}.force;
+    FORCE_den = dataDenormalize(FORCE, -1, 1, DataSet{trSogg}.maxForce, DataSet{trSogg}.minForce);
+elseif forceOption == 2
+    FORCE     = DataSet{trSogg}.cutforce;
+    FORCE_den = dataDenormalize(FORCE, 0, 1, DataSet{trSogg}.maxForce);
+end
 
 % Dividing train test and validation for simulation and force reconstruction 
 TI = DataSet{trSogg}.testIndex; VI = DataSet{trSogg}.validIndex; END = length(DataSet{trSogg}.emg);
 [EMG_Train, EMG_Valid, EMG_Test] = divideind(EMG, 1:TI-1, VI:END,  TI:VI-1);
 [FORCE_Train_den, FORCE_Valid_den, FORCE_Test_den] = divideind(FORCE_den, 1:TI-1, VI:END,  TI:VI-1);
-
-% [Optional]: uncomment if you want to use divedetrain
-% EMG = EMG_Train;
-% EMG_Test = [EMG_Test, EMG_Valid];
-% FORCE_Test = [FORCE_Test, FORCE_Valid];
+setDivision = input('Press 1 for divideind or 2 for dividetrain: ');
+while all(1:2 ~= setDivision)
+    setDivision = input('Option not find!\nPress 1 for divideind or 2 for dividetrain: ');
+end
+if setDivision == 2
+    EMG = EMG_Train;
+    EMG_Test = [EMG_Test, EMG_Valid];
+    FORCE_Test = [FORCE_Test, FORCE_Valid];
+end
 
 %% TRAINING/SIMULATION LOOP
 MSE_emg = zeros(1,10); MSE_frc = zeros(1,10);
@@ -38,7 +52,11 @@ emgToForceMatrix = cell(1,10);
 parfor h = 1:10
     
     fprintf('H%d: Generating Net...\n',h);
-    net = netAutoEncoder(h, EMG, 5000, [TI, VI, END]);
+    if setDivision == 1
+        net = netAutoEncoder(h, EMG, 10000, [TI, VI, END]); % divideind
+    elseif setDivision == 2
+        net = netAutoEncoder(h, EMG, 10000);                % dividetrain
+    end
     
     %% TRAINING
     fprintf('H%d: Training...\n',h);
