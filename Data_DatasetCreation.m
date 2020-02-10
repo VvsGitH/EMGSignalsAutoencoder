@@ -175,23 +175,17 @@ for s = 1:40
     end
 end
 
-%% Normalization
+%% Saving signals max and min for future de/normalization
 for s = 1:40
-    fprintf('Signal normalization for subject: %d\n',s);
-    % EMG normalization between 0 and 1
+	% EMG 
     maxEMG = max(DataSet{s,1}.emg,[],2);
-    DataSet{s,1}.emg = normalize(DataSet{s,1}.emg,2,'range',[0,1]);
     DataSet{s,1}.maxEmg = maxEMG;
     
-    % Force normalization between -1 and 1
+    % FORCE
     maxForce = max(DataSet{s,1}.force,[],2);
     minForce = min(DataSet{s,1}.force,[],2);
-    DataSet{s,1}.force = normalize(DataSet{s,1}.force,2,'range',[-1,1]);
     DataSet{s,1}.maxForce = maxForce;
     DataSet{s,1}.minForce = minForce;
-    
-    % cutForce normalization between 0 and 1
-    DataSet{s,1}.cutforce = normalize(DataSet{s,1}.cutforce,2,'range',[0,1]);
 end
 
 %% Saving Full Dataset

@@ -16,35 +16,35 @@ end
 
 % Naming variable for a clean code
 EMG         = DataSet{trSogg}.emg;
+EMG         = normalize(EMG,2,'range',[0 0.8]);
+maxEMG		= DataSet{trSogg}.maxEmg;
+
 forceOption = input('Press 1 for normalized force or 2 for normalized positive only force: ');
 while all(1:2 ~= forceOption)
     forceOption = input('Option not find!\nPress 1 for normalized force or 2 for normalized positive only force: ');
 end
 if forceOption == 1
     FORCE     = DataSet{trSogg}.force;
-    FORCE_den = dataDenormalize(FORCE, -1, 1, DataSet{trSogg}.maxForce, DataSet{trSogg}.minForce);
+    FORCE     = normalize(FORCE,2,'range',[-1.35 1.35]);
+    maxForce  = DataSet{trSogg}.maxForce;
+    minForce  = DataSet{trSogg}.minForce;
 elseif forceOption == 2
     FORCE     = DataSet{trSogg}.cutforce;
-    FORCE_den = dataDenormalize(FORCE, 0, 1, DataSet{trSogg}.maxForce);
+    FORCE     = normalize(FORCE,2,'range',[0 1.35]);
+    maxForce  = DataSet{trSogg}.maxForce;
+    minForce  = zeros(size(FORCE,1),1);
 end
-
-% Uniforming output weigths
-EMG         = EMG.*0.8;
-FORCE       = FORCE.*1.35;
 
 % Dividing train test and validation for simulation and force reconstruction
 TI = DataSet{trSogg}.testIndex; VI = DataSet{trSogg}.validIndex; END = length(DataSet{trSogg}.emg);
 [EMG_Train, EMG_Valid, EMG_Test]        = divideind(EMG, 1:TI-1, VI:END, TI:VI-1);
 [FORCE_Train, FORCE_Valid, FORCE_Test]  = divideind(FORCE, 1:TI-1, VI:END, TI:VI-1);
-setDivision = input('Press 1 for divideind or 2 for dividetrain: ');
-while all(1:2 ~= setDivision)
-    setDivision = input('Option not find!\nPress 1 for divideind or 2 for dividetrain: ');
-end
-if setDivision == 2
-    EMG = EMG_Train;
-    EMG_Test = [EMG_Test, EMG_Valid];
-    FORCE_Test = [FORCE_Test, FORCE_Valid];
-end
+
+% [Optional] Uncomment to use dividetrain
+% EMG = EMG_Train;
+% FORCE = FORCE_Train;
+% EMG_Test = [EMG_Test, EMG_Valid];
+% FORCE_Test = [FORCE_Test, FORCE_Valid];
 
 %% TRAINING/SIMULATION LOOP
 MSE_emg    = zeros(1,10); MSE_frc        = zeros(1,10);
@@ -55,12 +55,7 @@ trainedNet = cell(1,10);  trainingReport = cell(1,10);
 parfor h = 1:10
     
     fprintf('H%d: Generating Net...\n',h);
-    net = network;
-    if setDivision == 1
-        net = netDoubleAutoEncoder(h, EMG, FORCE, 300, [TI, VI]); % divideind
-    elseif setDivision == 2
-        net = netDoubleAutoEncoder(h, EMG, FORCE, 10000);                % dividetrain
-    end
+    net = netDoubleAutoEncoder(h, EMG, FORCE, 300, [TI, VI]); % divideind
     
     %% TRAINING
     fprintf('H%d: Training...\n',h);
@@ -71,17 +66,23 @@ parfor h = 1:10
     %% SIMULATION
     fprintf('H%d: Simulation...\n',h);
     XRecos = trNet(EMG_Test,'useParallel','no');
+    EMG_Recos = XRecos(1:10,:);
+    FORCE_Recos = XRecos(11:16,:);
     
     %% PERFORMANCE
     % Performance for the reconstruction of EMG signal
     fprintf('H%d_EMG: Calculating performance indexes...\n',h)
-    [mse_emg, rmse_emg, r2_emg] = netPerformance(EMG_Test, XRecos(1:10,:));
+    EMG_Test_den  = dataDenormalize(EMG_Test,0,1,maxEMG);
+	EMG_Recos_den = dataDenormalize(EMG_Recos,0,1,maxEMG);
+    [mse_emg, rmse_emg, r2_emg] = netPerformance(EMG_Test_den, EMG_Recos_den);
     fprintf('   The std is: %d\n   The RMSE is: %d\n   The R2 is: %d\n',...
         mse_emg,rmse_emg,r2_emg);
     
     % Performance for the reconstruction of Forces
     fprintf('H%d_FORCE: Calculating performance indexes...\n',h)
-    [mse_frc, rmse_frc, r2_frc] = netPerformance(FORCE_Test, XRecos(11:16,:));
+    FORCE_Test_den  = dataDenormalize(FORCE_Test,0,1,maxForce,minForce);
+	FORCE_Recos_den = dataDenormalize(FORCE_Recos,0,1,maxForce,minForce);
+    [mse_frc, rmse_frc, r2_frc] = netPerformance(FORCE_Test_den, FORCE_Recos_den);
     fprintf('   The std is: %d\n   The RMSE is: %d\n   The R2 is: %d\n',...
         mse_frc,rmse_frc,r2_frc);
     
