@@ -75,13 +75,13 @@ parfor h = 1:10
     fprintf('H%d_EMG: Calculating performance indexes...\n',h)
 	EMG_Test_den  = dataDenormalize(EMG_Test,0,1,maxEMG);
 	EMG_Recos_den = dataDenormalize(EMG_Recos,0,1,maxEMG);
-    [mse_emg, rmse_emg, r2_emg] = netPerformance(EMG_Test_den, EMG_Recos_den);
+    [mse_emg, rmse_emg, r2_emg] = dataPerformance(EMG_Test_den, EMG_Recos_den);
     fprintf('   The mse is: %d\n   The RMSE is: %d\n   The R2 is: %d\n',...
         mse_emg,rmse_emg,r2_emg);
     
     % Performance for the reconstruction of Forces
     fprintf('H%d_FORCE: Calculating performance indexes...\n',h)
-    [mse_frc, rmse_frc, r2_frc] = netPerformance(FORCE_Test, FORCE_Recos);
+    [mse_frc, rmse_frc, r2_frc] = dataPerformance(FORCE_Test, FORCE_Recos);
     fprintf('   The mse is: %d\n   The RMSE is: %d\n   The R2 is: %d\n',...
         mse_frc,rmse_frc,r2_frc);
     

@@ -3,7 +3,7 @@
 % RMSE: root mean square error
 % R2: coefficient of determination
 
-function [MSE, RMSE, R2] = netPerformance(targetData, estimateData)
+function [MSE, RMSE, R2] = dataPerformance(targetData, estimateData)
 
 % Calculating MSE
 e = gsubtract(targetData, estimateData);

@@ -31,7 +31,7 @@ parfor h = 1:10
     % Performance for the reconstruction of EMG signal
     EMG_Test_den  = dataDenormalize(EMG_Test,0,0.8,maxEMG);
 	EMG_Recos_den = dataDenormalize(EMG_Recos,0,0.8,maxEMG);
-    [mse_emg, rmse_emg, r2_emg] = netPerformance(EMG_Test_den, EMG_Recos_den);
+    [mse_emg, rmse_emg, r2_emg] = dataPerformance(EMG_Test_den, EMG_Recos_den);
      
     % Performance for the reconstruction of Forces
     if all(minForce == zeros(size(FORCE,1),1))
@@ -41,7 +41,7 @@ parfor h = 1:10
         FORCE_Test_den  = dataDenormalize(FORCE_Test,0,1.35,maxForce);
         FORCE_Recos_den = dataDenormalize(FORCE_Recos,0,1.35,maxForce);
     end
-    [mse_frc, rmse_frc, r2_frc] = netPerformance(FORCE_Test_den, FORCE_Recos_den);
+    [mse_frc, rmse_frc, r2_frc] = dataPerformance(FORCE_Test_den, FORCE_Recos_den);
     
     % Inserting into vectors
     MSE_emg(1,h) = mse_emg;
