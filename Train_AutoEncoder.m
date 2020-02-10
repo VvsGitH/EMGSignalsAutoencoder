@@ -143,15 +143,15 @@ figure(1);
     subplot(2,3,4)
     
     % MSE, RMSE and R2 barplots for FORCE
-    bar(h,DAEsim.MSE_frc), title('FORCE MSE'),
+    bar(h,AEsim.MSE_frc), title('FORCE MSE'),
     set(gca,'YGrid','on'),
     xlabel('Number of synergies');
     subplot(2,3,5)
-    bar(h,DAEsim.RMSE_frc), title('FORCE RMSE'),
+    bar(h,AEsim.RMSE_frc), title('FORCE RMSE'),
     set(gca,'YGrid','on'),
     xlabel('Number of synergies');    
     subplot(2,3,6)
-    bar(h,DAEsim.R2_frc), title('FORCE R2'),
+    bar(h,AEsim.R2_frc), title('FORCE R2'),
     set(gca,'YGrid','on'),
     xlabel('Number of synergies');   
 
