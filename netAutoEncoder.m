@@ -28,7 +28,7 @@ else
     net.divideFcn               = 'divideind';    % Dataset divided into train, test and validation
     net.divideParam.trainInd    = 1:indVect(1)-1;
     net.divideParam.testInd     = indVect(1):indVect(2)-1;
-    net.divideParam.valInd      = indVect(2):indVect(3);
+    net.divideParam.valInd      = indVect(2):length(inputData);
 end
 
 % Perform Settings

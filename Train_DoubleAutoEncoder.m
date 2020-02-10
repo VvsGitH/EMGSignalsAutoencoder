@@ -57,7 +57,7 @@ parfor h = 1:10
     fprintf('H%d: Generating Net...\n',h);
     net = network;
     if setDivision == 1
-        net = netDoubleAutoEncoder(h, EMG, FORCE, 10000, [TI, VI, END]); % divideind
+        net = netDoubleAutoEncoder(h, EMG, FORCE, 300, [TI, VI]); % divideind
     elseif setDivision == 2
         net = netDoubleAutoEncoder(h, EMG, FORCE, 10000);                % dividetrain
     end
@@ -76,13 +76,13 @@ parfor h = 1:10
     % Performance for the reconstruction of EMG signal
     fprintf('H%d_EMG: Calculating performance indexes...\n',h)
     [mse_emg, rmse_emg, r2_emg] = netPerformance(EMG_Test, XRecos(1:10,:));
-    fprintf('   The mse is: %d\n   The RMSE is: %d\n   The R2 is: %d\n',...
+    fprintf('   The std is: %d\n   The RMSE is: %d\n   The R2 is: %d\n',...
         mse_emg,rmse_emg,r2_emg);
     
     % Performance for the reconstruction of Forces
     fprintf('H%d_FORCE: Calculating performance indexes...\n',h)
     [mse_frc, rmse_frc, r2_frc] = netPerformance(FORCE_Test, XRecos(11:16,:));
-    fprintf('   The mse is: %d\n   The RMSE is: %d\n   The R2 is: %d\n',...
+    fprintf('   The std is: %d\n   The RMSE is: %d\n   The R2 is: %d\n',...
         mse_frc,rmse_frc,r2_frc);
     
     % Inserting into vectors
@@ -116,23 +116,39 @@ if (upper(input('Save the file? [Y,N]\n','s')) == 'Y')
     fprintf('%s saved!\n',filename);
 end
 
-%% PLOTTING
+%% PLOTTING PERFOMANCE INDEXES
 fprintf('Plotting Performance Indexes...\n')
 h = 1:10;
 figure(1);
+    % MSE, RMSE and R2 barplots for EMG
     subplot(2,3,1)
-    plot(h,DAEsim.MSE_emg), title('EMG MSE');
+    bar(h,DAEsim.MSE_emg), title('EMG MSE'),
+    set(gca,'YGrid','on'),
+    xlabel('Number of synergies');
     subplot(2,3,2)
-    plot(h,DAEsim.RMSE_emg), title('EMG RMSE');
+    bar(h,DAEsim.RMSE_emg), title('EMG RMSE'),
+    set(gca,'YGrid','on'),
+    xlabel('Number of synergies');    
     subplot(2,3,3)
-    plot(h,DAEsim.R2_emg), title('EMG R2');
+    bar(h,DAEsim.R2_emg), title('EMG R2'),
+    set(gca,'YGrid','on'),
+    xlabel('Number of synergies');    
     subplot(2,3,4)
-    plot(h,DAEsim.MSE_frc), title('FORCE MSE');
+    
+    % MSE, RMSE and R2 barplots for FORCE
+    bar(h,DAEsim.MSE_frc), title('FORCE MSE'),
+    set(gca,'YGrid','on'),
+    xlabel('Number of synergies');
     subplot(2,3,5)
-    plot(h,DAEsim.RMSE_frc), title('FORCE RMSE');
+    bar(h,DAEsim.RMSE_frc), title('FORCE RMSE'),
+    set(gca,'YGrid','on'),
+    xlabel('Number of synergies');    
     subplot(2,3,6)
-    plot(h,DAEsim.R2_frc), title('FORCE R2');
+    bar(h,DAEsim.R2_frc), title('FORCE R2'),
+    set(gca,'YGrid','on'),
+    xlabel('Number of synergies');
 
+%% PLOTTING RECONSTRUCTED SIGNALS
 fprintf('Plotting Signals...\n')
 t1 = 1:1:size(EMG_Test,2);
 for h = 1:10
