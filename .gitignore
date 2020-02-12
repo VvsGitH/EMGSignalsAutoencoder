@@ -4,7 +4,8 @@ Papers
 All_Subjects.mat
 Data_TestDataset.mat
 Data_TrainDataset.mat
-Data_FullDataset.mat
+Data_fullDataSet.mat
+Data_sfDataSet.mat
 Test.m
 *.asv
 *.log

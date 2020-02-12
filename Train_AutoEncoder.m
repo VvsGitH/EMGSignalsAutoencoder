@@ -19,9 +19,9 @@ EMG         = DataSet{trSogg}.emg;
 EMG			= normalize(EMG,2,'range',[0 1]);
 maxEMG		= DataSet{trSogg}.maxEmg;
 
-forceOption = input('Press 1 for normalized force or 2 for normalized positive only force: ');
+forceOption = input('Press 1 for force or 2 for cutforce: ');
 while all(1:2 ~= forceOption)
-    forceOption = input('Option not find!\nPress 1 for normalized force or 2 for normalized positive only force: ');
+    forceOption = input('Option not find!\nPress 1 for force or 2 for cutforce: ');
 end
 if forceOption == 1
     FORCE   = DataSet{trSogg}.force;
@@ -154,7 +154,7 @@ fprintf('Plotting Signals...\n')
 t1 = 1:1:size(EMG_Test,2);
 for h = 1:10
     % Calculating EMG_Recos and plotting EMG signals
-    EMG_Recos = AEsim.trainedNet{h}(EMG_Test,'useParallel','yes');
+    EMG_Recos = AEsim.trainedNet{h}(EMG_Test,'useParallel','no');
     t2 = 1:1:size(EMG_Recos,2);
     figure(2*h)
     for i = 1:10
@@ -172,7 +172,7 @@ for h = 1:10
     figure(2*h+1)
     for i = 1:6
         subplot(2,3,i)
-        plot(t1,FORCE_Test_den(i,:),'b');
+        plot(t1,FORCE_Test(i,:),'b');
         hold on
         plot(t2,FORCE_Recos(i,:),'r');
     end

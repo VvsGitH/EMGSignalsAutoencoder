@@ -13,10 +13,14 @@ for s=1:40
     Sbj{s,1}.restimulus = Sbj{s,1}.restimulus - 40;
 end
 
-%% Remove Triceps and Biceps
+%% Removing unused channels
 for s = 1:40
+    % Removing biceps and triceps channels from EMG
     Sbj{s,1}.emg(:,12) = [];
     Sbj{s,1}.emg(:,11) = [];
+    % Removing thumb channels from forces
+    Sbj{s,1}.force(:,6) = [];
+    Sbj{s,1}.force(:,5) = [];
 end
 
 %% Post Processing
@@ -55,7 +59,7 @@ for s = 1:40
     end
     
     %% elimination of negative elements of the force
-    cutforce = zeros(size(Sbj{s,1}.force,1),6);
+    cutforce = zeros(size(Sbj{s,1}.force,1),4);
     posInd = Sbj{s,1}.force>=0;
     cutforce(posInd) = Sbj{s,1}.force(posInd);
     
@@ -130,7 +134,8 @@ for s = 1:40
     end
 end
 
-%% Reunification of the signal
+%% Reunification of the signal for the Single Finger Database
+movsf = [1,2,3,4];
 % Selecting the way the dataset will be divided
 trainRip = [1 3 5];     % Repetitions for the train set
 testRip = [2 6];        % Repetitions for the test set
@@ -141,36 +146,65 @@ validRip = 4;           % Repetitions for the validation set
 % In each set the repetitions and the movements are ordered like this:
 % MiRj MiRj+1 ... MiRk Mi+1Rj Mi+1Rj+1 ... Mi+1Rk ... MwRk
 
-DataSet = cell(40,1);
+sfDataSet = cell(40,1);
 for s = 1:40
-    fprintf('Signal Reunification for subject: %d \n',s);
-    DataSet{s,1}.emg = [];
-    DataSet{s,1}.force = [];
-    DataSet{s,1}.cutforce = [];
+    fprintf('Signal finger dataset generation for subject: %d \n',s);
+    sfDataSet{s,1}.emg = [];
+    sfDataSet{s,1}.force = [];
     % Train set
-    for m = mov
+    for m = movsf
         for r = trainRip            
-            DataSet{s,1}.emg = [DataSet{s,1}.emg, Sbj{s,1}.Mov(m).T(r).emg];
-            DataSet{s,1}.force = [DataSet{s,1}.force, Sbj{s,1}.Mov(m).T(r).force];
-            DataSet{s,1}.cutforce = [DataSet{s,1}.cutforce, Sbj{s,1}.Mov(m).T(r).cutforce];
+            sfDataSet{s,1}.emg = [sfDataSet{s,1}.emg, Sbj{s,1}.Mov(m).T(r).emg];
+            sfDataSet{s,1}.force = [sfDataSet{s,1}.force, Sbj{s,1}.Mov(m).T(r).cutforce];
         end
     end
     % Test set
-    DataSet{s,1}.testIndex = size(DataSet{s,1}.emg,2)+1;    % Starting index of the test set
-    for m = mov
+    sfDataSet{s,1}.testIndex = size(sfDataSet{s,1}.emg,2)+1;    % Starting index of the test set
+    for m = movsf
         for r = testRip            
-            DataSet{s,1}.emg = [DataSet{s,1}.emg, Sbj{s,1}.Mov(m).T(r).emg];
-            DataSet{s,1}.force = [DataSet{s,1}.force, Sbj{s,1}.Mov(m).T(r).force];
-            DataSet{s,1}.cutforce = [DataSet{s,1}.cutforce, Sbj{s,1}.Mov(m).T(r).cutforce];
+            sfDataSet{s,1}.emg = [sfDataSet{s,1}.emg, Sbj{s,1}.Mov(m).T(r).emg];
+            sfDataSet{s,1}.force = [sfDataSet{s,1}.force, Sbj{s,1}.Mov(m).T(r).cutforce];
         end
     end
     % Validation set
-    DataSet{s,1}.validIndex = size(DataSet{s,1}.emg,2)+1;   % Starting index of the validation set
+    sfDataSet{s,1}.validIndex = size(sfDataSet{s,1}.emg,2)+1;   % Starting index of the validation set
+    for m = movsf
+        for r = validRip            
+            sfDataSet{s,1}.emg = [sfDataSet{s,1}.emg, Sbj{s,1}.Mov(m).T(r).emg];
+            sfDataSet{s,1}.force = [sfDataSet{s,1}.force, Sbj{s,1}.Mov(m).T(r).cutforce];
+        end
+    end
+end
+
+%% Reunification of the signal for the Single and Multiple Finger Database
+% Same division as the precedent
+
+fullDataSet = cell(40,1);
+for s = 1:40
+    fprintf('Multiple finger dataset generation for subject: %d \n',s);
+    fullDataSet{s,1}.emg = [];
+    fullDataSet{s,1}.force = [];
+    % Train set
+    for m = mov
+        for r = trainRip            
+            fullDataSet{s,1}.emg = [fullDataSet{s,1}.emg, Sbj{s,1}.Mov(m).T(r).emg];
+            fullDataSet{s,1}.force = [fullDataSet{s,1}.force, Sbj{s,1}.Mov(m).T(r).cutforce];
+        end
+    end
+    % Test set
+    fullDataSet{s,1}.testIndex = size(fullDataSet{s,1}.emg,2)+1;    % Starting index of the test set
+    for m = mov
+        for r = testRip            
+            fullDataSet{s,1}.emg = [fullDataSet{s,1}.emg, Sbj{s,1}.Mov(m).T(r).emg];
+            fullDataSet{s,1}.force = [fullDataSet{s,1}.force, Sbj{s,1}.Mov(m).T(r).cutforce];
+        end
+    end
+    % Validation set
+    fullDataSet{s,1}.validIndex = size(fullDataSet{s,1}.emg,2)+1;   % Starting index of the validation set
     for m = mov
         for r = validRip            
-            DataSet{s,1}.emg = [DataSet{s,1}.emg, Sbj{s,1}.Mov(m).T(r).emg];
-            DataSet{s,1}.force = [DataSet{s,1}.force, Sbj{s,1}.Mov(m).T(r).force];
-            DataSet{s,1}.cutforce = [DataSet{s,1}.cutforce, Sbj{s,1}.Mov(m).T(r).cutforce];
+            fullDataSet{s,1}.emg = [fullDataSet{s,1}.emg, Sbj{s,1}.Mov(m).T(r).emg];
+            fullDataSet{s,1}.force = [fullDataSet{s,1}.force, Sbj{s,1}.Mov(m).T(r).cutforce];
         end
     end
 end
@@ -178,20 +212,24 @@ end
 %% Saving signals max and min for future de/normalization
 for s = 1:40
 	% EMG 
-    maxEMG = max(DataSet{s,1}.emg,[],2);
-    DataSet{s,1}.maxEmg = maxEMG;
+    maxEMG = max(sfDataSet{s,1}.emg,[],2);
+    sfDataSet{s,1}.maxEmg = maxEMG;
+    maxEMG = max(fullDataSet{s,1}.emg,[],2);
+    fullDataSet{s,1}.maxEmg = maxEMG;
     
     % FORCE
-    maxForce = max(DataSet{s,1}.force,[],2);
-    minForce = min(DataSet{s,1}.force,[],2);
-    DataSet{s,1}.maxForce = maxForce;
-    DataSet{s,1}.minForce = minForce;
+    maxForce = max(sfDataSet{s,1}.force,[],2);
+    sfDataSet{s,1}.maxForce = maxForce;
+    maxForce = max(fullDataSet{s,1}.force,[],2);
+    fullDataSet{s,1}.maxForce = maxForce;
 end
 
 %% Saving Full Dataset
 if (upper(input('Save the file? [Y,N]\n','s')) == 'Y')
-    fprintf('Saving...\n');
-    save('Data_FullDataset.mat', 'DataSet')
+    fprintf('Saving sfDataSet...\n');
+    save('Data_sfDataSet.mat', 'sfDataSet')
+    fprintf('Saving fullDataSet...\n');
+    save('Data_fullDataSet.mat', 'fullDataSet')
     fprintf('Saving completed!\n');
 end
 
