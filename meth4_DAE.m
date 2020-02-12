@@ -1,4 +1,4 @@
-function DAEsim = netTrainTestDAE(EMG, FORCE, maxEMG, maxForce, indVect, maxEpochs)
+function DAEsim = meth4_DAE(EMG, FORCE, maxEMG, maxForce, indVect, maxEpochs)
 
 TI = indVect(1); VI = indVect(2);
 END = length(EMG);
@@ -29,11 +29,7 @@ parfor h = 1:10
     
     %% PERFORMANCE
     % Different normalization for output balance
-    outSize = size(EMG,1)+size(FORCE,1);    % 14
-    emgRelSize = size(EMG,1)/outSize;       % 10/14
-    forceRelSize = size(FORCE,1)/outSize;   % 4/14
-    r_emg = 0.5/emgRelSize;
-    r_frc = 0.5/forceRelSize;
+    [r_emg, r_frc] = netDAEoutputNorm(EMG, FORCE);
     
     % Performance for the reconstruction of EMG signal
     EMG_Test_den  = dataDenormalize(EMG_Test,0,r_emg,maxEMG);

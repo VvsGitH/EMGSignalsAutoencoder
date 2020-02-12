@@ -1,4 +1,4 @@
-function AEsim = netTrainTestAE(EMG, FORCE, maxEMG, indVect, maxEpochs)
+function AEsim = meth3_AE(EMG, FORCE, maxEMG, indVect, maxEpochs)
 
 TI = indVect(1); VI = indVect(2);
 END = length(EMG);
