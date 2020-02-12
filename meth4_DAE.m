@@ -21,13 +21,13 @@ parfor h = 1:10
     trainedNet{1,h} = trNet;
     trainingReport{1,h} = tr;
     
-    %% SIMULATION
+    %% SIMULATION (TO DO: INCLUDERE SIMULAZIONE CON DATI DI TRAIN E TEST)
     fprintf('       H%d: Simulation\n',h);
     XRecos = trNet(EMG_Test,'useParallel','no');
     EMG_Recos = XRecos(1:10,:);
     FORCE_Recos = XRecos(11:16,:);
     
-    %% PERFORMANCE
+    %% PERFORMANCE (TO DO: INCLUDERE SIMULAZIONE CON DATI DI TRAIN E TEST)
     % Different normalization for output balance
     [r_emg, r_frc] = netDAEoutputNorm(EMG, FORCE);
     

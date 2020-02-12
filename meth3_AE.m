@@ -22,11 +22,11 @@ parfor h = 1:10
     trainedNet{1,h} = trNet;
     trainingReport{1,h} = tr;
     
-    %% SIMULATION
+    %% SIMULATION (TO DO: INCLUDERE SIMULAZIONE CON DATI DI TRAIN E TEST)
     fprintf('       H%d: Simulation\n',h);
     EMG_Recos = trNet(EMG_Test,'useParallel','no');
     
-    %% FORCE RECONSTRUCTION
+    %% FORCE RECONSTRUCTION (TO DO: INCLUDERE SIMULAZIONE CON DATI DI TRAIN E TEST)
     inputWeigths = cell2mat(trNet.IW);
     S_Train = poslin(inputWeigths*EMG_Train); % tf -> poslin
     Hae = FORCE_Train*pinv(S_Train);
@@ -34,7 +34,7 @@ parfor h = 1:10
     S_Test = poslin(inputWeigths*EMG_Test); % tf -> poslin
     FORCE_Recos = Hae*S_Test;
     
-    %% PERFORMANCE
+    %% PERFORMANCE (TO DO: INCLUDERE SIMULAZIONE CON DATI DI TRAIN E TEST)
     % Performance for the reconstruction of EMG signal
     EMG_Test_den  = dataDenormalize(EMG_Test,0,1,maxEMG);
 	EMG_Recos_den = dataDenormalize(EMG_Recos,0,1,maxEMG);

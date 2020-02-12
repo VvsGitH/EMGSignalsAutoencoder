@@ -6,19 +6,20 @@ pool = gcp;
 
 %% SETTING UP
 fprintf('##### LOADING DATA #####\n');
-load Data_FullDataset
+load Data_fullDataset
+load Data_sfDataset
 
 % Selecting Subjects
 selSbj = 21;  % best five subjects
 N = length(selSbj);
 
 % Setting max training epochs
-maxEpochs = input('Select max epochs number: ');
+maxEpochs = 1000;
 
 % DAE: different normalization for output balance
 [r_emg, r_frc] = netDAEoutputNorm(DataSet{1}.emg, DataSet{1}.force);
 
-%% TRAINING SIMULATION LOOP
+%% TRAINING SIMULATION LOOP (TO DO: INCLUDERE I DUE DATASET SINGLE E MULTIPLE FINGERS)
 fprintf('##### TRAINING SIMULATION LOOP #####\n');
 LFRsims_sf = cell(40,1);    LFRsims_mf = cell(40,1);
 NNMFsims_sf = cell(40,1);   NNMFsims_mf = cell(40,1);
@@ -62,120 +63,121 @@ for trSogg = selSbj
     
 end
 
-%% MEAN PERFORMANCE
+%% MEAN PERFORMANCE (TO DO: INCLUDERE LFR E NNMF, SINGLE AND MULTIPLE FINGERS)
 fprintf('##### CALCULATING PERFORMANCES #####\n');
-modResults.AE.AEsims = AEsims_sf;
-[modResults.AE.avgMSE_emg, modResults.AE.avgMSE_frc,   ...
-modResults.AE.avgRMSE_emg, modResults.AE.avgRMSE_frc,  ...
-modResults.AE.avgR2_emg,   modResults.AE.avgR2_frc,    ...
-modResults.AE.stdMSE_emg,  modResults.AE.stdMSE_frc,   ...
-modResults.AE.stdRMSE_emg, modResults.AE.stdRMSE_frc,  ...
-modResults.AE.stdR2_emg,   modResults.AE.stdR2_frc]  = dataSimResults(AEsims_sf, selSbj);
 
-modResults.DAE.DAEsims = DAEsims_sf;
-[modResults.DAE.avgMSE_emg, modResults.DAE.avgMSE_frc,  ...
-modResults.DAE.avgRMSE_emg, modResults.DAE.avgRMSE_frc, ...
-modResults.DAE.avgR2_emg,   modResults.DAE.avgR2_frc,   ...
-modResults.DAE.stdMSE_emg,  modResults.DAE.stdMSE_frc,  ...
-modResults.DAE.stdRMSE_emg, modResults.DAE.stdRMSE_frc, ...
-modResults.DAE.stdR2_emg,   modResults.DAE.stdR2_frc] = dataSimResults(DAEsims_sf, selSbj);
+simResults.AE.AEsims = AEsims_sf;
+[simResults.AE.avgMSE_emg, simResults.AE.avgMSE_frc,   ...
+simResults.AE.avgRMSE_emg, simResults.AE.avgRMSE_frc,  ...
+simResults.AE.avgR2_emg,   simResults.AE.avgR2_frc,    ...
+simResults.AE.stdMSE_emg,  simResults.AE.stdMSE_frc,   ...
+simResults.AE.stdRMSE_emg, simResults.AE.stdRMSE_frc,  ...
+simResults.AE.stdR2_emg,   simResults.AE.stdR2_frc]  = dataSimResults(AEsims_sf, selSbj);
+
+simResults.DAE.DAEsims = DAEsims_sf;
+[simResults.DAE.avgMSE_emg, simResults.DAE.avgMSE_frc,  ...
+simResults.DAE.avgRMSE_emg, simResults.DAE.avgRMSE_frc, ...
+simResults.DAE.avgR2_emg,   simResults.DAE.avgR2_frc,   ...
+simResults.DAE.stdMSE_emg,  simResults.DAE.stdMSE_frc,  ...
+simResults.DAE.stdRMSE_emg, simResults.DAE.stdRMSE_frc, ...
+simResults.DAE.stdR2_emg,   simResults.DAE.stdR2_frc] = dataSimResults(DAEsims_sf, selSbj);
 
 %% SAVING
 if (upper(input('Save the results? [Y,N]\n','s')) == 'Y')
     fprintf('Insert the filename: (press enter to use the default one)\n');
-    filename = 'Data_modResults';
+    filename = 'Data_simResults';
     filename = [filename, input(filename,'s'),'.mat'];
     fprintf('Saving...\n');
-    save(filename,'Results');
+    save(filename,'simResults');
     fprintf('%s saved!\n',filename);
 end
 
-%% PLOTTING
+%% PLOTTING (TO DO: SPOSTA QUESTA PARTE IN SCRIPT_PLOTRESULTS)
 h = 1:10;
 
 fprintf('##### PLOTTING AE RESULTS #####\n');
 figure(1);
     % MSE, RMSE and R2 barplots for EMG
     subplot(2,3,1)
-    bar(h,modResults.AE.avgMSE_emg), title('AE EMG MSE [mV]'),
+    bar(h,simResults.AE.avgMSE_emg), title('AE EMG MSE [mV]'),
     set(gca,'YGrid','on'),
     xlabel('Number of synergies');
     hold on
-    errorbar(modResults.AE.avgMSE_emg,modResults.AE.stdMSE_emg,'ko');
+    errorbar(simResults.AE.avgMSE_emg,simResults.AE.stdMSE_emg,'ko');
     subplot(2,3,2)
-    bar(h,modResults.AE.avgRMSE_emg), title('AE EMG RMSE [mV]'),
+    bar(h,simResults.AE.avgRMSE_emg), title('AE EMG RMSE [mV]'),
     set(gca,'YGrid','on'),
     xlabel('Number of synergies');
     hold on
-    errorbar(modResults.AE.avgRMSE_emg,modResults.AE.stdRMSE_emg,'ko');
+    errorbar(simResults.AE.avgRMSE_emg,simResults.AE.stdRMSE_emg,'ko');
     subplot(2,3,3)
-    bar(h,modResults.AE.avgR2_emg), title('AE EMG R2'),
+    bar(h,simResults.AE.avgR2_emg), title('AE EMG R2'),
     set(gca,'YGrid','on'),
     xlabel('Number of synergies');
     hold on
-    errorbar(modResults.AE.avgR2_emg,modResults.AE.stdR2_emg,'ko');
+    errorbar(simResults.AE.avgR2_emg,simResults.AE.stdR2_emg,'ko');
     
     % MSE, RMSE and R2 barplots for FORCE
     subplot(2,3,4)
-    bar(h,modResults.AE.avgMSE_frc), title('AE FORCE MSE [N]'),
+    bar(h,simResults.AE.avgMSE_frc), title('AE FORCE MSE [N]'),
     set(gca,'YGrid','on'),
     xlabel('Number of synergies');
     hold on
-    errorbar(modResults.AE.avgMSE_frc,modResults.AE.stdMSE_frc,'ko');
+    errorbar(simResults.AE.avgMSE_frc,simResults.AE.stdMSE_frc,'ko');
     subplot(2,3,5)
-    bar(h,modResults.AE.avgRMSE_frc), title('AE FORCE RMSE [N]'),
+    bar(h,simResults.AE.avgRMSE_frc), title('AE FORCE RMSE [N]'),
     set(gca,'YGrid','on'),
     xlabel('Number of synergies');
     hold on
-    errorbar(modResults.AE.avgRMSE_frc,modResults.AE.stdRMSE_frc,'ko');
+    errorbar(simResults.AE.avgRMSE_frc,simResults.AE.stdRMSE_frc,'ko');
     subplot(2,3,6)
-    bar(h,modResults.AE.avgR2_frc), title('AE FORCE R2'),
+    bar(h,simResults.AE.avgR2_frc), title('AE FORCE R2'),
     set(gca,'YGrid','on'),
     xlabel('Number of synergies');  
     hold on
-    errorbar(modResults.AE.avgR2_frc,modResults.AE.stdR2_frc,'ko');
+    errorbar(simResults.AE.avgR2_frc,simResults.AE.stdR2_frc,'ko');
 
 fprintf('##### PLOTTING DAE RESULTS #####\n');
 figure(2);
     % MSE, RMSE and R2 barplots for EMG
     subplot(2,3,1)
-    bar(h,modResults.DAE.avgMSE_emg), title('DAE EMG MSE [mV]'),
+    bar(h,simResults.DAE.avgMSE_emg), title('DAE EMG MSE [mV]'),
     set(gca,'YGrid','on'),
     xlabel('Number of synergies');
     hold on
-    errorbar(modResults.DAE.avgMSE_emg,modResults.DAE.stdMSE_emg,'ko');
+    errorbar(simResults.DAE.avgMSE_emg,simResults.DAE.stdMSE_emg,'ko');
     subplot(2,3,2)
-    bar(h,modResults.DAE.avgRMSE_emg), title('DAE EMG RMSE [mV]'),
+    bar(h,simResults.DAE.avgRMSE_emg), title('DAE EMG RMSE [mV]'),
     set(gca,'YGrid','on'),
     xlabel('Number of synergies');
     hold on
-    errorbar(modResults.DAE.avgRMSE_emg,modResults.DAE.stdRMSE_emg,'ko');
+    errorbar(simResults.DAE.avgRMSE_emg,simResults.DAE.stdRMSE_emg,'ko');
     subplot(2,3,3)
-    bar(h,modResults.DAE.avgR2_emg), title('DAE EMG R2'),
+    bar(h,simResults.DAE.avgR2_emg), title('DAE EMG R2'),
     set(gca,'YGrid','on'),
     xlabel('Number of synergies');
     hold on
-    errorbar(modResults.DAE.avgR2_emg,modResults.DAE.stdR2_emg,'ko');
+    errorbar(simResults.DAE.avgR2_emg,simResults.DAE.stdR2_emg,'ko');
     
     % MSE, RMSE and R2 barplots for FORCE
     subplot(2,3,4)
-    bar(h,modResults.DAE.avgMSE_frc), title('DAE FORCE MSE [N]'),
+    bar(h,simResults.DAE.avgMSE_frc), title('DAE FORCE MSE [N]'),
     set(gca,'YGrid','on'),
     xlabel('Number of synergies');
     hold on
-    errorbar(modResults.DAE.avgMSE_frc,modResults.DAE.stdMSE_frc,'ko');
+    errorbar(simResults.DAE.avgMSE_frc,simResults.DAE.stdMSE_frc,'ko');
     subplot(2,3,5)
-    bar(h,modResults.DAE.avgRMSE_frc), title('DAE FORCE RMSE [N]'),
+    bar(h,simResults.DAE.avgRMSE_frc), title('DAE FORCE RMSE [N]'),
     set(gca,'YGrid','on'),
     xlabel('Number of synergies');
     hold on
-    errorbar(modResults.DAE.avgRMSE_frc,modResults.DAE.stdRMSE_frc,'ko');
+    errorbar(simResults.DAE.avgRMSE_frc,simResults.DAE.stdRMSE_frc,'ko');
     subplot(2,3,6)
-    bar(h,modResults.DAE.avgR2_frc), title('DAE FORCE R2'),
+    bar(h,simResults.DAE.avgR2_frc), title('DAE FORCE R2'),
     set(gca,'YGrid','on'),
     xlabel('Number of synergies');  
     hold on
-    errorbar(modResults.DAE.avgR2_frc,modResults.DAE.stdR2_frc,'ko');
+    errorbar(simResults.DAE.avgR2_frc,simResults.DAE.stdR2_frc,'ko');
 
 
 
