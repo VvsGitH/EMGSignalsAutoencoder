@@ -9,59 +9,40 @@ fprintf('##### LOADING DATA #####\n');
 load Data_FullDataset
 
 % Selecting Subjects
-badSbj = [3,26,30,34,39];
-selSbj = setdiff(1:40,badSbj);
-selSbj = [1:3]; % SCRIPT TEST
-
-% Selecting utilized forces
-str = 'Press 1 for normalized force or 2 for normalized positive only force: ';
-errStr = 'Option not find!\n';
-disp('Select which forces will be utilized by the AE');
-forceOpt1 = input(str);
-while all(1:2 ~= forceOpt1)
-    forceOpt1 = input([errStr str]);
-end
-disp('Select which forces will be utilized by the DAE');
-forceOpt2 = input(str);
-while all(1:2 ~= forceOpt2)
-    forceOpt2 = input([errStr str]);
-end
+selSbj = 21;  % best five subjects
+N = length(selSbj);
 
 % Setting max training epochs
 maxEpochs = input('Select max epochs number: ');
 
+% DAE: different normalization for output balance
+outSize = size(EMG,1)+size(FORCE,1);    % 14
+emgRelSize = size(EMG,1)/outSize;       % 10/14
+forceRelSize = size(FORCE,1)/outSize;   % 4/14
+r_emg = 0.5/emgRelSize;
+r_frc = 0.5/forceRelSize;
+
 %% TRAINING SIMULATION LOOP
 fprintf('##### TRAINING SIMULATION LOOP #####\n');
-AEsims = cell(40,1); DAEsims = cell(40,1);
+NNMFsims = cell(N,1); AEsims = cell(N,1); DAEsims = cell(N,1);
 for trSogg = selSbj
     
     fprintf('Subject: %d\n', trSogg);
     
-    EMG            = DataSet{trSogg}.emg;
-    EMG1		   = normalize(EMG,2,'range',[0 1]);
-    EMG2           = normalize(EMG,2,'range',[0 0.8]);
-    maxEmg		   = DataSet{trSogg}.maxEmg;
+    EMG             = DataSet{trSogg}.emg;
+    EMG1		    = normalize(EMG,2,'range',[0 1]);
+    EMG2            = normalize(EMG,2,'range',[0 r_emg]);
+    maxEmg		    = DataSet{trSogg}.maxEmg;
     
-    if forceOpt1   == 1 
-        FORCE1     = DataSet{trSogg}.force;
-    else
-        FORCE1     = DataSet{trSogg}.cutforce;
-    end
+    FORCE1          = DataSet{trSogg}.force;
+    FORCE2          = normalize(FORCE1,2,'range',[0 r_frc]);
+    maxForce        = DataSet{trSogg}.maxForce;
     
-    if forceOpt2   == 1
-        FORCE2     = DataSet{trSogg}.force;
-        FORCE2     = normalize(FORCE2,2,'range',[-1.35 1.35]);
-        maxForce   = DataSet{trSogg}.maxForce;
-        minForce   = DataSet{trSogg}.minForce;
-    else
-        FORCE2     = DataSet{trSogg}.cutforce;
-        FORCE2     = normalize(FORCE2,2,'range',[0 1.35]);
-        maxForce   = DataSet{trSogg}.maxForce;
-        minForce   = zeros(size(FORCE2,1),1);
-    end
+    TI              = DataSet{trSogg}.testIndex; 
+    VI              = DataSet{trSogg}.validIndex;
     
-    TI             = DataSet{trSogg}.testIndex; 
-    VI             = DataSet{trSogg}.validIndex;
+    fprintf('   NNMF simulations\n');
+    AEsims{trSogg}  = nnmfTrainTest(EMG1, FORCE1, maxEmg, [TI, VI]);
     
     fprintf('   AE simulations\n');
     AEsims{trSogg}  = netTrainTestAE(EMG1, FORCE1, maxEmg, [TI, VI], maxEpochs);

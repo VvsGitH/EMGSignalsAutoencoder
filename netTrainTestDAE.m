@@ -1,4 +1,4 @@
-function DAEsim = netTrainTestDAE(EMG, FORCE, maxEMG, minForce, maxForce, indVect, maxEpochs)
+function DAEsim = netTrainTestDAE(EMG, FORCE, maxEMG, maxForce, indVect, maxEpochs)
 
 TI = indVect(1); VI = indVect(2);
 END = length(EMG);
@@ -28,19 +28,21 @@ parfor h = 1:10
     FORCE_Recos = XRecos(11:16,:);
     
     %% PERFORMANCE
+    % Different normalization for output balance
+    outSize = size(EMG,1)+size(FORCE,1);    % 14
+    emgRelSize = size(EMG,1)/outSize;       % 10/14
+    forceRelSize = size(FORCE,1)/outSize;   % 4/14
+    r_emg = 0.5/emgRelSize;
+    r_frc = 0.5/forceRelSize;
+    
     % Performance for the reconstruction of EMG signal
-    EMG_Test_den  = dataDenormalize(EMG_Test,0,0.8,maxEMG);
-	EMG_Recos_den = dataDenormalize(EMG_Recos,0,0.8,maxEMG);
+    EMG_Test_den  = dataDenormalize(EMG_Test,0,r_emg,maxEMG);
+	EMG_Recos_den = dataDenormalize(EMG_Recos,0,r_emg,maxEMG);
     [mse_emg, rmse_emg, r2_emg] = dataPerformance(EMG_Test_den, EMG_Recos_den);
      
     % Performance for the reconstruction of Forces
-    if all(minForce == zeros(size(FORCE,1),1))
-        FORCE_Test_den  = dataDenormalize(FORCE_Test,-1.35,1.35,maxForce,minForce);
-        FORCE_Recos_den = dataDenormalize(FORCE_Recos,-1.35,1.35,maxForce,minForce);
-    else
-        FORCE_Test_den  = dataDenormalize(FORCE_Test,0,1.35,maxForce);
-        FORCE_Recos_den = dataDenormalize(FORCE_Recos,0,1.35,maxForce);
-    end
+    FORCE_Test_den  = dataDenormalize(FORCE_Test,0,r_frc,maxForce);
+    FORCE_Recos_den = dataDenormalize(FORCE_Recos,0,r_frc,maxForce);
     [mse_frc, rmse_frc, r2_frc] = dataPerformance(FORCE_Test_den, FORCE_Recos_den);
     
     % Inserting into vectors
