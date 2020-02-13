@@ -10,16 +10,16 @@ load Data_fullDataset
 load Data_sfDataset
 
 % Selecting Subjects
-selSbj = 21;  % best five subjects
+selSbj = [4, 10, 16, 17, 21];  % best five subjects
 N = length(selSbj);
 
 % Setting max training epochs
 maxEpochs = 1000;
 
 % DAE: different normalization for output balance
-[r_emg, r_frc] = netDAEoutputNorm(DataSet{1}.emg, DataSet{1}.force);
+[r_emg, r_frc] = netDAEoutputNorm(fullDataSet{1}.emg, fullDataSet{1}.force);
 
-%% TRAINING SIMULATION LOOP (TO DO: INCLUDERE I DUE DATASET SINGLE E MULTIPLE FINGERS)
+%% TRAINING SIMULATION LOOP
 fprintf('##### TRAINING SIMULATION LOOP #####\n');
 LFRsims_sf = cell(40,1);    LFRsims_mf = cell(40,1);
 NNMFsims_sf = cell(40,1);   NNMFsims_mf = cell(40,1);
@@ -29,66 +29,82 @@ for trSogg = selSbj
     
     fprintf('Subject: %d\n', trSogg);
     
-    EMG      = DataSet{trSogg}.emg;
-    EMG1	 = normalize(EMG,2,'range',[0 1]);
-    EMG2     = normalize(EMG,2,'range',[0 r_emg]);
-    maxEmg	 = DataSet{trSogg}.maxEmg;
+    EMGsf       = sfDataSet{trSogg}.emg;
+    maxEMGsf	= sfDataSet{trSogg}.maxEmg;
+    EMGmf       = fullDataSet{trSogg}.emg;
+    maxEMGmf	= fullDataSet{trSogg}.maxEmg;
     
-    FORCE1   = DataSet{trSogg}.force;
-    FORCE2   = normalize(FORCE1,2,'range',[0 r_frc]);
-    maxForce = DataSet{trSogg}.maxForce;
+    FORCEsf     = sfDataSet{trSogg}.force;
+    maxFORCEsf	= sfDataSet{trSogg}.maxForce;
+    FORCEmf     = fullDataSet{trSogg}.force;
+    maxFORCEmf	= fullDataSet{trSogg}.maxForce;
     
-    TI       = DataSet{trSogg}.testIndex; 
-    VI       = DataSet{trSogg}.validIndex;
+    EMGsf_DAE   = normalize(EMGsf,2,'range',[0 r_emg]);
+    EMGsf	    = normalize(EMGsf,2,'range',[0 1]);
+    EMGmf_DAE   = normalize(EMGmf,2,'range',[0 r_emg]);
+    EMGmf	    = normalize(EMGmf,2,'range',[0 1]);
     
-    fprintf('   LFR: single fingers\n');
-    LFRsims_sf{trSogg}  = meth1_LFR(EMG, FORCE1, [TI, VI]);
-    fprintf('   LFR: multiple fingers\n');
-    LFRsims_mf{trSogg}  = meth1_LFR(EMG, FORCE1, [TI, VI]);
+    FORCEsf_DAE   = normalize(FORCEsf,2,'range',[0 r_frc]);
+    FORCEmf_DAE   = normalize(FORCEmf,2,'range',[0 r_frc]);
+        
+    TIsf       = sfDataSet{trSogg}.testIndex; 
+    TImf       = fullDataSet{trSogg}.testIndex; 
+    VIsf       = sfDataSet{trSogg}.validIndex;
+    VImf       = fullDataSet{trSogg}.testIndex; 
+    
+%     fprintf('   LFR: single fingers\n');
+%     LFRsims_sf{trSogg}  = meth1_LFR(EMGsf, FORCEsf, [TIsf, VIsf]);
+%     fprintf('   LFR: multiple fingers\n');
+%     LFRsims_mf{trSogg}  = meth1_LFR(EMGmf, FORCEmf, [TImf, VImf]);
     
     fprintf('   NNMF: single fingers\n');
-    NNMFsims_sf{trSogg} = meth2_NNMF(EMG1, FORCE1, maxEmg, [TI, VI]);
+    NNMFsims_sf{trSogg} = meth2_NNMF(EMGsf, FORCEsf, maxEMGsf, [TIsf, VIsf]);
     fprintf('   NNMF: single fingers\n');
-    NNMFsims_mf{trSogg} = meth2_NNMF(EMG1, FORCE1, maxEmg, [TI, VI]);
+    NNMFsims_mf{trSogg} = meth2_NNMF(EMGmf, FORCEmf, maxEMGmf, [TImf, VImf]);
     
-    fprintf('   AE: single fingers\n');
-    AEsims_sf{trSogg}   = meth3_AE(EMG1, FORCE1, maxEmg, [TI, VI], maxEpochs);
-    fprintf('   AE: multiple fingers\n');
-    AEsims_mf{trSogg}   = meth3_AE(EMG1, FORCE1, maxEmg, [TI, VI], maxEpochs);
-    
-    fprintf('   DAE: single fingers\n');
-    DAEsims_sf{trSogg}  = meth4_DAE(EMG2, FORCE2, maxEmg, maxForce, [TI, VI], maxEpochs);
-    fprintf('   DAE: multiple fingers\n');
-    DAEsims_mf{trSogg}  = meth4_DAE(EMG2, FORCE2, maxEmg, maxForce, [TI, VI], maxEpochs);
+%     fprintf('   AE: single fingers\n');
+%     AEsims_sf{trSogg}   = meth3_AE(EMGsf, FORCEsf, maxEMGsf, [TIsf, VIsf], maxEpochs);
+%     fprintf('   AE: multiple fingers\n');
+%     AEsims_mf{trSogg}   = meth3_AE(EMGmf, FORCEmf, maxEMGmf, [TImf, VImf], maxEpochs);
+%     
+%     fprintf('   DAE: single fingers\n');
+%     DAEsims_sf{trSogg}  = meth4_DAE(EMGsf_DAE, FORCEsf_DAE, maxEMGsf, maxFORCEsf, [TIsf, VIsf], maxEpochs);
+%     fprintf('   DAE: multiple fingers\n');
+%     DAEsims_mf{trSogg}  = meth4_DAE(EMGmf_DAE, FORCEmf_DAE, maxEMGmf, maxFORCEmf, [TImf, VImf], maxEpochs);
     
 end
 
-%% MEAN PERFORMANCE (TO DO: INCLUDERE LFR E NNMF, SINGLE AND MULTIPLE FINGERS)
+%% MEAN PERFORMANCE
 fprintf('##### CALCULATING PERFORMANCES #####\n');
 
-simResults.AE.AEsims = AEsims_sf;
-[simResults.AE.avgMSE_emg, simResults.AE.avgMSE_frc,   ...
-simResults.AE.avgRMSE_emg, simResults.AE.avgRMSE_frc,  ...
-simResults.AE.avgR2_emg,   simResults.AE.avgR2_frc,    ...
-simResults.AE.stdMSE_emg,  simResults.AE.stdMSE_frc,   ...
-simResults.AE.stdRMSE_emg, simResults.AE.stdRMSE_frc,  ...
-simResults.AE.stdR2_emg,   simResults.AE.stdR2_frc]  = dataSimResults(AEsims_sf, selSbj);
+simResults = cell(40,1);
+for trSogg = selSbj
+    simResults{trSogg}.LFR_sf  = LFRsims_sf{trSogg};
+    simResults{trSogg}.LFR_mf  = LFRsims_mf{trSogg};
+    simResults{trSogg}.NNMF_sf = NNMFsims_sf{trSogg};
+    simResults{trSogg}.NNMF_mf = NNMFsims_mf{trSogg};
+    simResults{trSogg}.AE_sf   = AEsims_sf{trSogg};
+    simResults{trSogg}.AE_mf   = AEsims_mf{trSogg};
+    simResults{trSogg}.DAE_sf  = DAEsims_sf{trSogg};
+    simResults{trSogg}.DAE_sf  = DAEsims_mf{trSogg};  
+end
 
-simResults.DAE.DAEsims = DAEsims_sf;
-[simResults.DAE.avgMSE_emg, simResults.DAE.avgMSE_frc,  ...
-simResults.DAE.avgRMSE_emg, simResults.DAE.avgRMSE_frc, ...
-simResults.DAE.avgR2_emg,   simResults.DAE.avgR2_frc,   ...
-simResults.DAE.stdMSE_emg,  simResults.DAE.stdMSE_frc,  ...
-simResults.DAE.stdRMSE_emg, simResults.DAE.stdRMSE_frc, ...
-simResults.DAE.stdR2_emg,   simResults.DAE.stdR2_frc] = dataSimResults(DAEsims_sf, selSbj);
+avgResults.LFR_sf  = dataSimResults(LFRsims_sf, selSbj);
+avgResults.LFR_mf  = dataSimResults(LFRsims_mf, selSbj);
+avgResults.NNMF_sf = dataSimResults(NNMFsims_sf, selSbj);
+avgResults.NNMF_mf = dataSimResults(NNMFsims_mf, selSbj);
+avgResults.AE_sf   = dataSimResults(AEsims_sf, selSbj);
+avgResults.AE_mf   = dataSimResults(AEsims_mf, selSbj);
+avgResults.DAE_sf  = dataSimResults(DAEsims_sf, selSbj);
+avgResults.DAE_mf  = dataSimResults(DAEsims_mf, selSbj);
 
 %% SAVING
 if (upper(input('Save the results? [Y,N]\n','s')) == 'Y')
     fprintf('Insert the filename: (press enter to use the default one)\n');
-    filename = 'Data_simResults';
+    filename = 'Data_fullResults';
     filename = [filename, input(filename,'s'),'.mat'];
     fprintf('Saving...\n');
-    save(filename,'simResults');
+    save(filename,'simResults','avgResults');
     fprintf('%s saved!\n',filename);
 end
 
