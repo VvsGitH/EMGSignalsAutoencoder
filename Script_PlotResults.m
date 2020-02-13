@@ -12,49 +12,23 @@ load Data_fullResults
 
 
 %% PLOT MEAN PERFORMANCE GRAPHS
-h = 1:10;
-
 fprintf('##### PLOTTING MEAN RESULTS #####\n');
-figure(1);
-    % MSE, RMSE and R2 barplots for EMG
-    subplot(2,3,1)
-    bar(h,simResults.AE.avgMSE_emg), title('AE EMG MSE [mV]'),
-    set(gca,'YGrid','on'),
-    xlabel('Number of synergies');
+N = size(plotArray{1},1);
+M = size(plotArray{1},2);
+groupwidth = min(0.8, M/(M + 1.5));
+figure(1)
+plotArray = varSelector(avgResults, 0, 0);
+for i = 1:6
+    subplot(2,3,i)
+    bar(plotArray{i}),
+    set(gca,'YGrid','on'), xlabel('Number of synergies'),
     hold on
-    errorbar(simResults.AE.avgMSE_emg,simResults.AE.stdMSE_emg,'ko');
-    subplot(2,3,2)
-    bar(h,simResults.AE.avgRMSE_emg), title('AE EMG RMSE [mV]'),
-    set(gca,'YGrid','on'),
-    xlabel('Number of synergies');
-    hold on
-    errorbar(simResults.AE.avgRMSE_emg,simResults.AE.stdRMSE_emg,'ko');
-    subplot(2,3,3)
-    bar(h,simResults.AE.avgR2_emg), title('AE EMG R2'),
-    set(gca,'YGrid','on'),
-    xlabel('Number of synergies');
-    hold on
-    errorbar(simResults.AE.avgR2_emg,simResults.AE.stdR2_emg,'ko');
-    
-    % MSE, RMSE and R2 barplots for FORCE
-    subplot(2,3,4)
-    bar(h,simResults.AE.avgMSE_frc), title('AE FORCE MSE [N]'),
-    set(gca,'YGrid','on'),
-    xlabel('Number of synergies');
-    hold on
-    errorbar(simResults.AE.avgMSE_frc,simResults.AE.stdMSE_frc,'ko');
-    subplot(2,3,5)
-    bar(h,simResults.AE.avgRMSE_frc), title('AE FORCE RMSE [N]'),
-    set(gca,'YGrid','on'),
-    xlabel('Number of synergies');
-    hold on
-    errorbar(simResults.AE.avgRMSE_frc,simResults.AE.stdRMSE_frc,'ko');
-    subplot(2,3,6)
-    bar(h,simResults.AE.avgR2_frc), title('AE FORCE R2'),
-    set(gca,'YGrid','on'),
-    xlabel('Number of synergies');  
-    hold on
-    errorbar(simResults.AE.avgR2_frc,simResults.AE.stdR2_frc,'ko');
+    for j = 1:M
+        x = (1:N) - groupwidth/2 + (2*j-1) * groupwidth / (2*M);
+        errorbar(x,plotArray{i}(:,j),plotArray{i+6}(:,j),'ko');
+    end
+end
+
 
 %% PLOT SINGLE SUBJECT PERFORMANCE GRAPHS
 
@@ -64,7 +38,7 @@ figure(1);
 
 %% FUNCTION
 
-function selMeth = varSelector(resStruct, single_multiple, train_test)
+function selResults = varSelector(resStruct, single_multiple, train_test)
 %%
 fields = fieldnames(resStruct);
 N = length(fields);
@@ -114,10 +88,16 @@ selPerf(:,any(cellfun(@isempty, selPerf),1)) = [];
 %% Creiamo una nuova struttura
 N = length(selMeth);
 M = length(selPerf);
-for n = 1:N
-    for m = 1:M
-        output.(selMeth{n}).(selPerf{n,m}) = resStruct.(selMeth{n}).(selPerf{n,m});
+selResults = cell(M,1);
+for m = 1:M
+    for n = 1:N
+       selResults{m}(:,n)  = resStruct.(selMeth{n}).(selPerf{n,m});
     end
 end
+% selResults has the following structure:
+% M cells, each one corresponds to a performance indexes, in thi order:
+%   MSE_emg; MSE_frc; RMSE_emg; RMSE_frc; R2_emg; R2_frc; [...stdIndexes] 
+% Each cell contains a 10xN array. The N methods are in this order:
+%   LFR, NNMF, AE, DAE
 
 end
