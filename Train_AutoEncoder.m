@@ -6,7 +6,7 @@ pool = gcp;
 
 %% SETTING UP
 fprintf('Loading Data...\n');
-load Data_FullDataset
+load Data_fullDataset
 
 % Select Subject
 trSogg = input('Input Subject Number: ');
