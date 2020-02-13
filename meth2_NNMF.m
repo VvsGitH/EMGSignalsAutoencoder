@@ -16,7 +16,7 @@ RMSE_emg_ts = zeros(1,10); RMSE_frc_ts = zeros(1,10);
 R2_emg_ts   = zeros(1,10); R2_frc_ts   = zeros(1,10);
 synMatrix   = cell(1,10);  convMatrix  = cell(1,10);
 
-for h = 1:10
+parfor h = 1:10
     %% TRAINING
     fprintf('       H%d: Training\n',h);
     options=statset('nnmf');
@@ -78,3 +78,4 @@ NNMFsim.R2_emg_ts   = R2_emg_ts;
 NNMFsim.R2_frc_ts   = R2_frc_ts;
 
 end
+
