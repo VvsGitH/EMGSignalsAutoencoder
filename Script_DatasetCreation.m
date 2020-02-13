@@ -4,7 +4,7 @@ clc
 
 %% Load data
 % Loading NinaPro Databes files from './Daniel & Roberto/DB2'
-ttds=tabularTextDatastore('./Daniel & Roberto/DB2','FileExtensions','.mat','NumHeaderLines',129);
+ttds=tabularTextDatastore('./NinaPro_DB2','FileExtensions','.mat','NumHeaderLines',129);
 Sbj = cell(40,1);
 for s=1:40
     fprintf('Loading Subject %d \n',s)

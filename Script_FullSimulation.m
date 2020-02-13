@@ -52,10 +52,10 @@ for trSogg = selSbj
     VIsf       = sfDataSet{trSogg}.validIndex;
     VImf       = fullDataSet{trSogg}.testIndex; 
     
-%     fprintf('   LFR: single fingers\n');
-%     LFRsims_sf{trSogg}  = meth1_LFR(EMGsf, FORCEsf, [TIsf, VIsf]);
-%     fprintf('   LFR: multiple fingers\n');
-%     LFRsims_mf{trSogg}  = meth1_LFR(EMGmf, FORCEmf, [TImf, VImf]);
+    fprintf('   LFR: single fingers\n');
+    LFRsims_sf{trSogg}  = meth1_LFR(EMGsf, FORCEsf, [TIsf, VIsf]);
+    fprintf('   LFR: multiple fingers\n');
+    LFRsims_mf{trSogg}  = meth1_LFR(EMGmf, FORCEmf, [TImf, VImf]);
     
     fprintf('   NNMF: single fingers\n');
     NNMFsims_sf{trSogg} = meth2_NNMF(EMGsf, FORCEsf, maxEMGsf, [TIsf, VIsf]);
