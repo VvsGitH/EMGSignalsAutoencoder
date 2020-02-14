@@ -18,8 +18,9 @@ dataChoice = train_test +dataNumber -1;
 selResults = cell(perfNumber,1);
 for pI = 1: perfNumber
     selResults{pI} = zeros(10,1);
-    for mI = 1: methodNumber
-        selResults{pI}(:,mI) = selResults{pI} + resStruct.(methods{mI}).(fing{fingChoice}).(data{dataChoice}).(perfs{pI});
+    selResults{pI}(:,1) = zeros(10,1) + resStruct.(methods{1}).(fing{fingChoice}).(data{dataChoice}).(perfs{pI});
+    for mI = 2: methodNumber
+        selResults{pI}(:,mI) = resStruct.(methods{mI}).(fing{fingChoice}).(data{dataChoice}).(perfs{pI});
     end
 end
 
