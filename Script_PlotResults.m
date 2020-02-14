@@ -10,94 +10,76 @@ clc
 % load Data_sfDataset
 load Data_fullResults
 
-
 %% PLOT MEAN PERFORMANCE GRAPHS
 fprintf('##### PLOTTING MEAN RESULTS #####\n');
-N = size(plotArray{1},1);
-M = size(plotArray{1},2);
-groupwidth = min(0.8, M/(M + 1.5));
-figure(1)
-plotArray = varSelector(avgResults, 0, 0);
-for i = 1:6
-    subplot(2,3,i)
-    bar(plotArray{i}),
-    set(gca,'YGrid','on'), xlabel('Number of synergies'),
-    hold on
-    for j = 1:M
-        x = (1:N) - groupwidth/2 + (2*j-1) * groupwidth / (2*M);
-        errorbar(x,plotArray{i}(:,j),plotArray{i+6}(:,j),'ko');
+
+count = 1;
+sgtitleArray{1} = 'AVERAGE PERFOMANCE - SINGLE FINGER - TRAIN DATA';
+sgtitleArray{2} = 'AVERAGE PERFOMANCE - SINGLE FINGER - TEST DATA';
+sgtitleArray{3} = 'AVERAGE PERFOMANCE - MULTIPLE FINGER - TRAIN DATA';
+sgtitleArray{4} = 'AVERAGE PERFOMANCE - MULTIPLE FINGER - TEST DATA';
+for single_multiple = 0:1
+    for train_Test = 0:1        
+        plotArray = dataPlotSelector(avgResults, single_multiple, train_Test);
+        plotArray([1 4 7 10]) = []; % removing MSE
+        groupNumber = size(plotArray{1},1);
+        barXgroup = size(plotArray{1},2);
+        groupwidth = min(0.8, barXgroup/(barXgroup + 1.5));
+        figure(count)
+        sgtitle(sgtitleArray{count});
+        titleArray = [{'EMG RMSE'},{'EMG R2'},{'FORCE RMSE'},{'FORCE R2'}];
+        labelArray = [{'mV'},{' '},{'N'},{' '}];
+        for i = 1:4
+            subplot(2,2,i)
+            p1 = bar(plotArray{i});
+            set(gca,'YGrid','on'), title(titleArray{i}),
+            xlabel('Number of synergies'), ylabel(labelArray{i}),
+            hold on
+            for j = 1:barXgroup
+                x = (1:groupNumber) - groupwidth/2 + (2*j-1) * groupwidth / (2*barXgroup);
+                p2 = errorbar(x,plotArray{i}(:,j),plotArray{i+4}(:,j));
+            end
+            legend(p1,{'LFR','NNMF'},'NumColumns',2),
+        end
+        count = count +1;
     end
 end
 
-
 %% PLOT SINGLE SUBJECT PERFORMANCE GRAPHS
-
+selSbj = [4, 10, 16, 17, 21];
+selSbj = [4, 10];
+extCount = 1;
+for sbj = selSbj
+intCount = 1;
+sgtitleArray{1} = ['SBJ ',num2str(sbj),' PERFOMANCE - SINGLE FINGER - TRAIN DATA'];
+sgtitleArray{2} = ['SBJ ',num2str(sbj),' PERFOMANCE - SINGLE FINGER - TEST DATA'];
+sgtitleArray{3} = ['SBJ ',num2str(sbj),' PERFOMANCE - MULTIPLE FINGER - TRAIN DATA'];
+sgtitleArray{4} = ['SBJ ',num2str(sbj),' PERFOMANCE - MULTIPLE FINGER - TEST DATA'];
+for single_multiple = 0:1
+    for train_Test = 0:1        
+        plotArray = dataPlotSelector(simResults{sbj}, single_multiple, train_Test);
+        plotArray([1 4]) = []; % removing MSE
+        groupNumber = size(plotArray{1},1);
+        barXgroup = size(plotArray{1},2);
+        groupwidth = min(0.8, barXgroup/(barXgroup + 1.5));
+        figure(extCount)
+        sgtitle(sgtitleArray{intCount});
+        titleArray = [{'EMG RMSE'},{'EMG R2'},{'FORCE RMSE'},{'FORCE R2'}];
+        labelArray = [{'mV'},{' '},{'N'},{' '}];
+        for i = 1:4
+            subplot(2,2,i)
+            bar(plotArray{i});
+            set(gca,'YGrid','on'), title(titleArray{i}),
+            xlabel('Number of synergies'), ylabel(labelArray{i}),
+            legend({'LFR','NNMF'},'NumColumns',2),
+        end
+        intCount = intCount +1;
+    end
+end
+extCount = extCount +1;
+end
 
 %% PLOT SINGLE SUBJECT SIGNAL GRAPHS
 
 
-%% FUNCTION
 
-function selResults = varSelector(resStruct, single_multiple, train_test)
-%%
-fields = fieldnames(resStruct);
-N = length(fields);
-selMeth = cell(N,1);
-if single_multiple == 0
-    for n = 1:N
-        if strfind(fields{n},'_sf') ~= 0
-            selMeth{n} = fields{n};
-        end
-    end
-else
-    for n = 1:N
-        if strfind(fields{n},'_mf') ~= 0
-            selMeth{n} = fields{n};
-        end
-    end
-end
-
-%% eliminiamo gli elementi nulli da sellMeth
-selMeth = selMeth(~cellfun(@isempty, selMeth));
-
-%%
-N = length(selMeth);
-M = length(fieldnames(resStruct.(selMeth{1})));
-selPerf = cell(N,M);
-for n = 1:N
-    fields = fieldnames(resStruct.(selMeth{n}));    
-    if train_test == 0
-        for m = 1:M
-            if strfind(fields{m},'_tr') ~= 0
-                selPerf{n,m} = fields{m};
-            end
-        end
-    else
-        for m = 1:M
-            if strfind(fields{m},'_ts') ~= 0
-                selPerf{n,m} = fields{m};
-            end
-        end
-    end
-    
-end
-
-%% eliminiamo gli elementi nulli da selPerf
-selPerf(:,any(cellfun(@isempty, selPerf),1)) = [];
-
-%% Creiamo una nuova struttura
-N = length(selMeth);
-M = length(selPerf);
-selResults = cell(M,1);
-for m = 1:M
-    for n = 1:N
-       selResults{m}(:,n)  = resStruct.(selMeth{n}).(selPerf{n,m});
-    end
-end
-% selResults has the following structure:
-% M cells, each one corresponds to a performance indexes, in thi order:
-%   MSE_emg; MSE_frc; RMSE_emg; RMSE_frc; R2_emg; R2_frc; [...stdIndexes] 
-% Each cell contains a 10xN array. The N methods are in this order:
-%   LFR, NNMF, AE, DAE
-
-end

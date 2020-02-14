@@ -46,10 +46,10 @@ parfor h = 1:10
     [mse_emg_ts, rmse_emg_ts, r2_emg_ts] = dataPerformance(EMG_Test_den, EMG_Recos_ts_den);
      
     % Performance for the reconstruction of Forces
-    FORCE_Train_den    = dataDenormalize(FORCE_Train,0,r_frc,maxEMG);
-    FORCE_Test_den     = dataDenormalize(FORCE_Test,0,r_frc,maxEMG);
-	FORCE_Recos_tr_den = dataDenormalize(FORCE_Recos_tr,0,r_frc,maxEMG);
-    FORCE_Recos_ts_den = dataDenormalize(FORCE_Recos_ts,0,r_frc,maxEMG);
+    FORCE_Train_den    = dataDenormalize(FORCE_Train,0,r_frc,maxForce);
+    FORCE_Test_den     = dataDenormalize(FORCE_Test,0,r_frc,maxForce);
+	FORCE_Recos_tr_den = dataDenormalize(FORCE_Recos_tr,0,r_frc,maxForce);
+    FORCE_Recos_ts_den = dataDenormalize(FORCE_Recos_ts,0,r_frc,maxForce);
     [mse_frc_tr, rmse_frc_tr, r2_frc_tr] = dataPerformance(FORCE_Train_den, FORCE_Recos_tr_den);
     [mse_frc_ts, rmse_frc_ts, r2_frc_ts] = dataPerformance(FORCE_Test_den, FORCE_Recos_ts_den);
     
@@ -72,18 +72,18 @@ end
 %% SAVING
 DAEsim.trainedNet     = trainedNet;
 DAEsim.trainingReport = trainingReport;
-DAEsim.MSE_emg_tr     = MSE_emg_tr;
-DAEsim.MSE_frc_tr     = MSE_frc_tr;
-DAEsim.RMSE_emg_tr    = RMSE_emg_tr;
-DAEsim.RMSE_frc_tr    = RMSE_frc_tr;
-DAEsim.R2_emg_tr      = R2_emg_tr;
-DAEsim.R2_frc_tr      = R2_frc_tr;
-DAEsim.MSE_emg_ts     = MSE_emg_ts;
-DAEsim.MSE_frc_ts     = MSE_frc_ts;
-DAEsim.RMSE_emg_ts    = RMSE_emg_ts;
-DAEsim.RMSE_frc_ts    = RMSE_frc_ts;
-DAEsim.R2_emg_ts      = R2_emg_ts;
-DAEsim.R2_frc_ts      = R2_frc_ts;
+DAEsim.Train.MSE_emg  = MSE_emg_tr;
+DAEsim.Train.RMSE_emg = RMSE_emg_tr;
+DAEsim.Train.R2_emg   = R2_emg_tr;
+DAEsim.Train.MSE_frc  = MSE_frc_tr;
+DAEsim.Train.RMSE_frc = RMSE_frc_tr;
+DAEsim.Train.R2_frc   = R2_frc_tr;
+DAEsim.Test.MSE_emg   = MSE_emg_ts;
+DAEsim.Test.RMSE_emg  = RMSE_emg_ts;
+DAEsim.Test.R2_emg    = R2_emg_ts;
+DAEsim.Test.MSE_frc   = MSE_frc_ts;
+DAEsim.Test.RMSE_frc  = RMSE_frc_ts;
+DAEsim.Test.R2_frc    = R2_frc_ts;
 
 end
 

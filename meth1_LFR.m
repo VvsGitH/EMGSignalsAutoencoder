@@ -19,19 +19,19 @@ FORCE_Recos_ts = H*EMG_Test;
 [mse_ts, rmse_ts, r2_ts] = dataPerformance(FORCE_Test, FORCE_Recos_ts);
 
 %% SAVING
-LFRsim.convMatrix  = H;
-LFRsim.MSE_emg_tr  = 0;
-LFRsim.MSE_emg_ts  = 0;
-LFRsim.MSE_frc_tr  = mse_tr;
-LFRsim.MSE_frc_ts  = mse_ts;
-LFRsim.RMSE_emg_tr = 0;
-LFRsim.RMSE_emg_ts = 0;
-LFRsim.RMSE_frc_tr = rmse_tr;
-LFRsim.RMSE_frc_ts = rmse_ts;
-LFRsim.R2_emg_tr   = 1;
-LFRsim.R2_emg_ts   = 1;
-LFRsim.R2_frc_tr   = r2_tr;
-LFRsim.R2_frc_ts   = r2_ts;
+LFRsim.convMatrix     = H;
+LFRsim.Train.MSE_emg  = 0;
+LFRsim.Train.RMSE_emg = 0;
+LFRsim.Train.R2_emg   = 1;
+LFRsim.Train.MSE_frc  = mse_tr;
+LFRsim.Train.RMSE_frc = rmse_tr;
+LFRsim.Train.R2_frc   = r2_tr;
+LFRsim.Test.MSE_emg   = 0;
+LFRsim.Test.RMSE_emg  = 0;
+LFRsim.Test.R2_emg    = 1;
+LFRsim.Test.MSE_frc   = mse_ts;
+LFRsim.Test.RMSE_frc  = rmse_ts;
+LFRsim.Test.R2_frc    = r2_ts;
 
 end
 

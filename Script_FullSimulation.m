@@ -11,6 +11,7 @@ load Data_sfDataset
 
 % Selecting Subjects
 selSbj = [4, 10, 16, 17, 21];  % best five subjects
+selSbj = [4,10];
 N = length(selSbj);
 
 % Setting max training epochs
@@ -75,36 +76,35 @@ for trSogg = selSbj
    %% DAE METHOD
    if any(selector == 4)
     fprintf('   DAE: single fingers\n');
-    DAEsims_sf{trSogg}  = meth4_DAE(EMGsf_DAE, FORCEsf_DAE, maxEMGsf, maxFORCEsf, [TIsf, VIsf], maxEpochs);
+    DAEsims_sf{trSogg} = meth4_DAE(EMGsf_DAE, FORCEsf_DAE, maxEMGsf, maxFORCEsf, [TIsf, VIsf], maxEpochs);
     fprintf('   DAE: multiple fingers\n');
     DAEsims_mf{trSogg}  = meth4_DAE(EMGmf_DAE, FORCEmf_DAE, maxEMGmf, maxFORCEmf, [TImf, VImf], maxEpochs);
    end
     
 end
 
-%% MEAN PERFORMANCE
-fprintf('##### CALCULATING PERFORMANCES #####\n');
-
+%% GENERATION OF SIMRESULT STRUCTURE
 simResults = cell(40,1);
 for trSogg = selSbj
-    simResults{trSogg}.LFR_sf  = LFRsims_sf{trSogg};
-    simResults{trSogg}.LFR_mf  = LFRsims_mf{trSogg};
-    simResults{trSogg}.NNMF_sf = NNMFsims_sf{trSogg};
-    simResults{trSogg}.NNMF_mf = NNMFsims_mf{trSogg};
-%     simResults{trSogg}.AE_sf   = AEsims_sf{trSogg};
-%     simResults{trSogg}.AE_mf   = AEsims_mf{trSogg};
-%     simResults{trSogg}.DAE_sf  = DAEsims_sf{trSogg};
-%     simResults{trSogg}.DAE_sf  = DAEsims_mf{trSogg};  
+    simResults{trSogg}.LFR.SF  = LFRsims_sf{trSogg};
+    simResults{trSogg}.LFR.MF  = LFRsims_mf{trSogg};
+    simResults{trSogg}.NNMF.SF = NNMFsims_sf{trSogg};
+    simResults{trSogg}.NNMF.MF = NNMFsims_mf{trSogg};
+%     simResults{trSogg}.AE.SF   = AEsims_sf{trSogg};
+%     simResults{trSogg}.AE.MF   = AEsims_mf{trSogg};
+%     simResults{trSogg}.DAE.SF  = DAEsims_sf{trSogg};
+%     simResults{trSogg}.DAE.MF  = DAEsims_mf{trSogg};  
 end
 
-avgResults.LFR_sf  = dataSimResults(LFRsims_sf, selSbj);
-avgResults.LFR_mf  = dataSimResults(LFRsims_mf, selSbj);
-avgResults.NNMF_sf = dataSimResults(NNMFsims_sf, selSbj);
-avgResults.NNMF_mf = dataSimResults(NNMFsims_mf, selSbj);
-% avgResults.AE_sf   = dataSimResults(AEsims_sf, selSbj);
-% avgResults.AE_mf   = dataSimResults(AEsims_mf, selSbj);
-% avgResults.DAE_sf  = dataSimResults(DAEsims_sf, selSbj);
-% avgResults.DAE_mf  = dataSimResults(DAEsims_mf, selSbj);
+%% GENERATING THE AVGRESULT STRUCTURE
+avgResults.LFR.SF  = dataSimResults(LFRsims_sf, selSbj);
+avgResults.LFR.MF  = dataSimResults(LFRsims_mf, selSbj);
+avgResults.NNMF.SF = dataSimResults(NNMFsims_sf, selSbj);
+avgResults.NNMF.MF = dataSimResults(NNMFsims_mf, selSbj);
+% avgResults.AE.SF   = dataSimResults(AEsims_sf, selSbj);
+% avgResults.AE.MF   = dataSimResults(AEsims_mf, selSbj);
+% avgResults.DAE.SF  = dataSimResults(DAEsims_sf, selSbj);
+% avgResults.DAE.MF  = dataSimResults(DAEsims_mf, selSbj);
 
 %% SAVING
 if (upper(input('Save the results? [Y,N]\n','s')) == 'Y')

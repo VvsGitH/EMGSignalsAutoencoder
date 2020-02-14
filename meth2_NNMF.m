@@ -65,20 +65,20 @@ parfor h = 1:10
 end
 
 %% SAVING
-NNMFsim.synMatrix   = synMatrix;
-NNMFsim.convMatrix  = convMatrix;
-NNMFsim.MSE_emg_tr  = MSE_emg_tr;
-NNMFsim.MSE_frc_tr  = MSE_frc_tr;
-NNMFsim.RMSE_emg_tr = RMSE_emg_tr;
-NNMFsim.RMSE_frc_tr = RMSE_frc_tr;
-NNMFsim.R2_emg_tr   = R2_emg_tr;
-NNMFsim.R2_frc_tr   = R2_frc_tr;
-NNMFsim.MSE_emg_ts  = MSE_emg_ts;
-NNMFsim.MSE_frc_ts  = MSE_frc_ts;
-NNMFsim.RMSE_emg_ts = RMSE_emg_ts;
-NNMFsim.RMSE_frc_ts = RMSE_frc_ts;
-NNMFsim.R2_emg_ts   = R2_emg_ts;
-NNMFsim.R2_frc_ts   = R2_frc_ts;
+NNMFsim.synMatrix      = synMatrix;
+NNMFsim.convMatrix     = convMatrix;
+NNMFsim.Train.MSE_emg  = MSE_emg_tr;
+NNMFsim.Train.RMSE_emg = RMSE_emg_tr;
+NNMFsim.Train.R2_emg   = R2_emg_tr;
+NNMFsim.Train.MSE_frc  = MSE_frc_tr;
+NNMFsim.Train.RMSE_frc = RMSE_frc_tr;
+NNMFsim.Train.R2_frc   = R2_frc_tr;
+NNMFsim.Test.MSE_emg   = MSE_emg_ts;
+NNMFsim.Test.RMSE_emg  = RMSE_emg_ts;
+NNMFsim.Test.R2_emg    = R2_emg_ts;
+NNMFsim.Test.MSE_frc   = MSE_frc_ts;
+NNMFsim.Test.RMSE_frc  = RMSE_frc_ts;
+NNMFsim.Test.R2_frc    = R2_frc_ts;
 
 end
 

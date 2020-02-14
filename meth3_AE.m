@@ -72,18 +72,18 @@ end
 AEsim.trainedNet     = trainedNet;
 AEsim.trainingReport = trainingReport;
 AEsim.convMatrix     = convMatrix;
-AEsim.MSE_emg_tr     = MSE_emg_tr;
-AEsim.MSE_frc_tr     = MSE_frc_tr;
-AEsim.RMSE_emg_tr    = RMSE_emg_tr;
-AEsim.RMSE_frc_tr    = RMSE_frc_tr;
-AEsim.R2_emg_tr      = R2_emg_tr;
-AEsim.R2_frc_tr      = R2_frc_tr;
-AEsim.MSE_emg_ts     = MSE_emg_ts;
-AEsim.MSE_frc_ts     = MSE_frc_ts;
-AEsim.RMSE_emg_ts    = RMSE_emg_ts;
-AEsim.RMSE_frc_ts    = RMSE_frc_ts;
-AEsim.R2_emg_ts      = R2_emg_ts;
-AEsim.R2_frc_ts      = R2_frc_ts;
+AEsim.Train.MSE_emg  = MSE_emg_tr;
+AEsim.Train.RMSE_emg = RMSE_emg_tr;
+AEsim.Train.R2_emg   = R2_emg_tr;
+AEsim.Train.MSE_frc  = MSE_frc_tr;
+AEsim.Train.RMSE_frc = RMSE_frc_tr;
+AEsim.Train.R2_frc   = R2_frc_tr;
+AEsim.Test.MSE_emg   = MSE_emg_ts;
+AEsim.Test.RMSE_emg  = RMSE_emg_ts;
+AEsim.Test.R2_emg    = R2_emg_ts;
+AEsim.Test.MSE_frc   = MSE_frc_ts;
+AEsim.Test.RMSE_frc  = RMSE_frc_ts;
+AEsim.Test.R2_frc    = R2_frc_ts;
 
 end
 
