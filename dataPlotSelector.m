@@ -3,24 +3,22 @@
 function selResults = dataPlotSelector(resStruct, single_multiple, train_test)
 
 %%
+fingChoice = single_multiple +1;
+dataChoice = train_test +1;
+
 methods = fieldnames(resStruct);
 methodNumber = length(methods);
 fing = fieldnames(resStruct.(methods{1}));
-data = fieldnames(resStruct.(methods{1}).(fing{1}));
-dataNumber = length(data);
-perfs = fieldnames(resStruct.(methods{1}).(fing{1}).(data{dataNumber}));
+perfs = fieldnames(resStruct.(methods{1}).(fing{1}).Train);
 perfNumber = length(perfs);
-
-fingChoice = single_multiple +dataNumber -1;
-dataChoice = train_test +dataNumber -1;
 
 %%
 selResults = cell(perfNumber,1);
 for pI = 1: perfNumber
-    selResults{pI} = zeros(10,1);
-    selResults{pI}(:,1) = zeros(10,1) + resStruct.(methods{1}).(fing{fingChoice}).(data{dataChoice}).(perfs{pI});
-    for mI = 2: methodNumber
-        selResults{pI}(:,mI) = resStruct.(methods{mI}).(fing{fingChoice}).(data{dataChoice}).(perfs{pI});
+    for mI = 1: methodNumber
+        data = fieldnames(resStruct.(methods{mI}).(fing{fingChoice}));
+        dataAdd = length(data) -2;
+        selResults{pI}(:,mI) = zeros(10,1) + resStruct.(methods{mI}).(fing{fingChoice}).(data{dataChoice+dataAdd}).(perfs{pI});
     end
 end
 

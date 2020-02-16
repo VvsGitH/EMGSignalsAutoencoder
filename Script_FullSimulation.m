@@ -11,7 +11,6 @@ load Data_sfDataset
 
 % Selecting Subjects
 selSbj = [4, 10, 16, 17, 21];  % best five subjects
-selSbj = [4,10];
 N = length(selSbj);
 
 % Setting max training epochs
@@ -28,7 +27,7 @@ NNMFsims_sf = cell(40,1);   NNMFsims_mf = cell(40,1);
 AEsims_sf = cell(40,1);     AEsims_mf = cell(40,1);
 DAEsims_sf = cell(40,1);    DAEsims_mf = cell(40,1);
 % Loop start
-selector = 1:2;
+selector = 1:4;
 for trSogg = selSbj
     fprintf('Subject: %d\n', trSogg);
     %% DATA SELECTION
@@ -51,7 +50,7 @@ for trSogg = selSbj
     TIsf        = sfDataSet{trSogg}.testIndex; 
     TImf        = fullDataSet{trSogg}.testIndex; 
     VIsf        = sfDataSet{trSogg}.validIndex;
-    VImf       = fullDataSet{trSogg}.validIndex; 
+    VImf        = fullDataSet{trSogg}.validIndex; 
     %% LFR METH OD
    if any(selector == 1)
     fprintf('   LFR: single fingers\n');
@@ -90,10 +89,10 @@ for trSogg = selSbj
     simResults{trSogg}.LFR.MF  = LFRsims_mf{trSogg};
     simResults{trSogg}.NNMF.SF = NNMFsims_sf{trSogg};
     simResults{trSogg}.NNMF.MF = NNMFsims_mf{trSogg};
-%     simResults{trSogg}.AE.SF   = AEsims_sf{trSogg};
-%     simResults{trSogg}.AE.MF   = AEsims_mf{trSogg};
-%     simResults{trSogg}.DAE.SF  = DAEsims_sf{trSogg};
-%     simResults{trSogg}.DAE.MF  = DAEsims_mf{trSogg};  
+    simResults{trSogg}.AE.SF   = AEsims_sf{trSogg};
+    simResults{trSogg}.AE.MF   = AEsims_mf{trSogg};
+    simResults{trSogg}.DAE.SF  = DAEsims_sf{trSogg};
+    simResults{trSogg}.DAE.MF  = DAEsims_mf{trSogg};  
 end
 
 %% GENERATING THE AVGRESULT STRUCTURE
@@ -101,10 +100,10 @@ avgResults.LFR.SF  = dataSimResults(LFRsims_sf, selSbj);
 avgResults.LFR.MF  = dataSimResults(LFRsims_mf, selSbj);
 avgResults.NNMF.SF = dataSimResults(NNMFsims_sf, selSbj);
 avgResults.NNMF.MF = dataSimResults(NNMFsims_mf, selSbj);
-% avgResults.AE.SF   = dataSimResults(AEsims_sf, selSbj);
-% avgResults.AE.MF   = dataSimResults(AEsims_mf, selSbj);
-% avgResults.DAE.SF  = dataSimResults(DAEsims_sf, selSbj);
-% avgResults.DAE.MF  = dataSimResults(DAEsims_mf, selSbj);
+avgResults.AE.SF   = dataSimResults(AEsims_sf, selSbj);
+avgResults.AE.MF   = dataSimResults(AEsims_mf, selSbj);
+avgResults.DAE.SF  = dataSimResults(DAEsims_sf, selSbj);
+avgResults.DAE.MF  = dataSimResults(DAEsims_mf, selSbj);
 
 %% SAVING
 if (upper(input('Save the results? [Y,N]\n','s')) == 'Y')

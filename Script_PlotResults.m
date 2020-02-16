@@ -12,15 +12,14 @@ load Data_fullResults
 
 %% PLOT MEAN PERFORMANCE GRAPHS
 fprintf('##### PLOTTING MEAN RESULTS #####\n');
-
 count = 1;
 sgtitleArray{1} = 'AVERAGE PERFOMANCE - SINGLE FINGER - TRAIN DATA';
 sgtitleArray{2} = 'AVERAGE PERFOMANCE - SINGLE FINGER - TEST DATA';
 sgtitleArray{3} = 'AVERAGE PERFOMANCE - MULTIPLE FINGER - TRAIN DATA';
 sgtitleArray{4} = 'AVERAGE PERFOMANCE - MULTIPLE FINGER - TEST DATA';
 for single_multiple = 0:1
-    for train_Test = 0:1        
-        plotArray = dataPlotSelector(avgResults, single_multiple, train_Test);
+    for train_test = 0:1
+        plotArray = dataPlotSelector(avgResults, single_multiple, train_test);
         plotArray([1 4 7 10]) = []; % removing MSE
         groupNumber = size(plotArray{1},1);
         barXgroup = size(plotArray{1},2);
@@ -46,37 +45,37 @@ for single_multiple = 0:1
 end
 
 %% PLOT SINGLE SUBJECT PERFORMANCE GRAPHS
+fprintf('##### PLOTTING PER SUBJECT RESULTS #####\n');
 selSbj = [4, 10, 16, 17, 21];
-selSbj = [4, 10];
 extCount = 1;
 for sbj = selSbj
-intCount = 1;
-sgtitleArray{1} = ['SBJ ',num2str(sbj),' PERFOMANCE - SINGLE FINGER - TRAIN DATA'];
-sgtitleArray{2} = ['SBJ ',num2str(sbj),' PERFOMANCE - SINGLE FINGER - TEST DATA'];
-sgtitleArray{3} = ['SBJ ',num2str(sbj),' PERFOMANCE - MULTIPLE FINGER - TRAIN DATA'];
-sgtitleArray{4} = ['SBJ ',num2str(sbj),' PERFOMANCE - MULTIPLE FINGER - TEST DATA'];
-for single_multiple = 0:1
-    for train_Test = 0:1        
-        plotArray = dataPlotSelector(simResults{sbj}, single_multiple, train_Test);
-        plotArray([1 4]) = []; % removing MSE
-        groupNumber = size(plotArray{1},1);
-        barXgroup = size(plotArray{1},2);
-        groupwidth = min(0.8, barXgroup/(barXgroup + 1.5));
-        figure(extCount)
-        sgtitle(sgtitleArray{intCount});
-        titleArray = [{'EMG RMSE'},{'EMG R2'},{'FORCE RMSE'},{'FORCE R2'}];
-        labelArray = [{'mV'},{' '},{'N'},{' '}];
-        for i = 1:4
-            subplot(2,2,i)
-            bar(plotArray{i});
-            set(gca,'YGrid','on'), title(titleArray{i}),
-            xlabel('Number of synergies'), ylabel(labelArray{i}),
-            legend({'LFR','NNMF'},'NumColumns',2),
+    intCount = 1;
+    sgtitleArray{1} = ['SBJ ',num2str(sbj),' PERFOMANCE - SINGLE FINGER - TRAIN DATA'];
+    sgtitleArray{2} = ['SBJ ',num2str(sbj),' PERFOMANCE - SINGLE FINGER - TEST DATA'];
+    sgtitleArray{3} = ['SBJ ',num2str(sbj),' PERFOMANCE - MULTIPLE FINGER - TRAIN DATA'];
+    sgtitleArray{4} = ['SBJ ',num2str(sbj),' PERFOMANCE - MULTIPLE FINGER - TEST DATA'];
+    for single_multiple = 0:1
+        for train_test = 0:1
+            plotArray = dataPlotSelector(simResults{sbj}, single_multiple, train_test);
+            plotArray([1 4]) = []; % removing MSE
+            groupNumber = size(plotArray{1},1);
+            barXgroup = size(plotArray{1},2);
+            groupwidth = min(0.8, barXgroup/(barXgroup + 1.5));
+            figure(extCount)
+            sgtitle(sgtitleArray{intCount});
+            titleArray = [{'EMG RMSE'},{'EMG R2'},{'FORCE RMSE'},{'FORCE R2'}];
+            labelArray = [{'mV'},{' '},{'N'},{' '}];
+            for i = 1:4
+                subplot(2,2,i)
+                bar(plotArray{i});
+                set(gca,'YGrid','on'), title(titleArray{i}),
+                xlabel('Number of synergies'), ylabel(labelArray{i}),
+                legend({'LFR','NNMF'},'NumColumns',2),
+            end
+            intCount = intCount +1;
+            extCount = extCount +1;
         end
-        intCount = intCount +1;
     end
-end
-extCount = extCount +1;
 end
 
 %% PLOT SINGLE SUBJECT SIGNAL GRAPHS
