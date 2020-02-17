@@ -64,7 +64,7 @@ switch methNum
         end
         trNet = openStruct.trainedNet{synNum};
         XRecos = trNet(EMG,'useParallel','no');
-        FORCE_Recos = dataDenormalize(XRecos(11:16,:),0,r_frc,dataSet.maxForce);
+        FORCE_Recos = dataDenormalize(XRecos(11:14,:),0,r_frc,dataSet.maxForce);
     otherwise
         %% DEFAULT
         [FORCE_Train, ~, FORCE_Test] = divideind(dataSet.force, 1:TI-1, VI:END,  TI:VI-1);

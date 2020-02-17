@@ -12,7 +12,7 @@ R2_emg_tr   = zeros(10,1); R2_frc_tr   = zeros(10,1);
 MSE_emg_ts  = zeros(10,1); MSE_frc_ts  = zeros(10,1);
 RMSE_emg_ts = zeros(10,1); RMSE_frc_ts = zeros(10,1);
 R2_emg_ts   = zeros(10,1); R2_frc_ts   = zeros(10,1);
-trainedNet = cell(1,10);  trainingReport = cell(1,10);
+trainedNet = cell(10,1);  trainingReport = cell(10,1);
 
 parfor h = 1:10
     
@@ -28,10 +28,10 @@ parfor h = 1:10
     fprintf('       S%d: Simulation\n',h);
     XRecos = trNet(EMG_Train,'useParallel','no');
     EMG_Recos_tr = XRecos(1:10,:);
-    FORCE_Recos_tr = XRecos(11:16,:);
+    FORCE_Recos_tr = XRecos(11:14,:);
     XRecos = trNet(EMG_Test,'useParallel','no');
     EMG_Recos_ts = XRecos(1:10,:);
-    FORCE_Recos_ts = XRecos(11:16,:);
+    FORCE_Recos_ts = XRecos(11:14,:);
     
     %% PERFORMANCE
     % Different normalization for output balance
@@ -71,7 +71,7 @@ end
 
 %% SAVING
 DAEsim.trainedNet     = trainedNet;
-DAEsim.trainingReport = trainingReport;
+% DAEsim.trainingReport = trainingReport;
 DAEsim.Train.MSE_emg  = MSE_emg_tr;
 DAEsim.Train.RMSE_emg = RMSE_emg_tr;
 DAEsim.Train.R2_emg   = R2_emg_tr;

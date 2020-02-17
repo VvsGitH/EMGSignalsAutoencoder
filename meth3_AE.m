@@ -33,7 +33,7 @@ parfor h = 1:10
     %% FORCE RECONSTRUCTION
     inputWeigths = cell2mat(trNet.IW);
     S_Train = poslin(inputWeigths*EMG_Train); % tf -> poslin
-    Hae = FORCE_Train/S_Train;
+    Hae = FORCE_Train*pinv(S_Train);
     FORCE_Recos_tr = Hae*S_Train;
     convMatrix{h,1} = Hae;
     S_Test = poslin(inputWeigths*EMG_Test); % tf -> poslin
@@ -70,7 +70,7 @@ end
 
 %% SAVING
 AEsim.trainedNet     = trainedNet;
-AEsim.trainingReport = trainingReport;
+% AEsim.trainingReport = trainingReport;
 AEsim.convMatrix     = convMatrix;
 AEsim.Train.MSE_emg  = MSE_emg_tr;
 AEsim.Train.RMSE_emg = RMSE_emg_tr;

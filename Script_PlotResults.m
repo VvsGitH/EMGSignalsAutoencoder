@@ -10,7 +10,7 @@ load Data_fullDataset
 load Data_sfDataset
 load Data_fullResults
 
-selSbj = [4, 10, 16, 17, 21];
+selSbj = [4, 16, 17, 21, 33];
 
 %% PLOT MEAN PERFORMANCE GRAPHS
 fprintf('##### PLOTTING MEAN RESULTS #####\n');

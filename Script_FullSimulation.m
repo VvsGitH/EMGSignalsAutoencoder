@@ -10,8 +10,7 @@ load Data_fullDataset
 load Data_sfDataset
 
 % Selecting Subjects
-selSbj = [4, 10, 16, 17, 21];  % best five subjects
-N = length(selSbj);
+selSbj = [4, 16, 17, 21, 33];  % best five subjects
 
 % Setting max training epochs
 maxEpochs = 1000;
