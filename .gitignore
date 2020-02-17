@@ -1,14 +1,10 @@
 Buongiorno
 Daniel & Roberto
-NinaPro_DB2
 Papers
-All_Subjects.mat
-Data_TestDataset.mat
-Data_TrainDataset.mat
+NinaPro_DB2/*.mat
+Figures/*.jpeg
+Figures/*.fig
 Data_fullDataSet.mat
 Data_sfDataSet.mat
-Test.m
 *.asv
 *.log
-*.fig
-*.jpeg
