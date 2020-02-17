@@ -46,7 +46,7 @@ end
 
 %% PLOT SINGLE SUBJECT PERFORMANCE GRAPHS
 fprintf('##### PLOTTING PER SUBJECT RESULTS #####\n');
-selSbj = [4, 10, 16, 17, 21];
+selSbj = [4, 33, 16, 17, 21];
 extCount = 1;
 for sbj = selSbj
     intCount = 1;
@@ -78,7 +78,62 @@ for sbj = selSbj
     end
 end
 
-%% PLOT SINGLE SUBJECT SIGNAL GRAPHS
+%% PLOTTING RECONSTRUCTED SIGNALS AUTOENCODER
+fprintf('Plotting Signals...\n')
+t1 = 1:1:size(EMG_Test,2);
+for h = 1:10
+    % Calculating EMG_Recos and plotting EMG signals
+    EMG_Recos = AEsim.trainedNet{h}(EMG_Test,'useParallel','no');
+    t2 = 1:1:size(EMG_Recos,2);
+    figure(2*h)
+    for i = 1:10
+        subplot(2,5,i)
+        plot(t1,EMG_Test(i,:),'b');
+        hold on
+        plot(t2,EMG_Recos(i,:),'r');
+    end
+    sgtitle(['H' num2str(h) ': EMG'])
+    
+    % Estimating FORCE_Recos and plotting FORCE signals
+    inputWeigths = cell2mat(AEsim.trainedNet{h}.IW);
+    S_Test = elliotsig(inputWeigths*EMG_Test);
+    FORCE_Recos = AEsim.emgToForceMatrix{h}*S_Test;
+    figure(2*h+1)
+    for i = 1:6
+        subplot(2,3,i)
+        plot(t1,FORCE_Test(i,:),'b');
+        hold on
+        plot(t2,FORCE_Recos(i,:),'r');
+    end
+    sgtitle(['H' num2str(h) ': FORCE'])
+end   
+
+%% PLOTTING RECONSTRUCTED SIGNALS DOUBLE AUTOENCODER
+fprintf('Plotting Signals...\n')
+t1 = 1:1:size(EMG_Test,2);
+for h = 1:10
+    % Calculating XRecos and plotting EMG signals
+    XRecos = DAEsim.trainedNet{h}(EMG_Test,'useParallel','no');
+    t2 = 1:1:size(XRecos,2);
+    figure(2*h)
+    for i = 1:10
+        subplot(2,5,i)
+        plot(t1,EMG_Test(i,:),'b');
+        hold on
+        plot(t2,XRecos(i,:),'r');
+    end
+    sgtitle(['H' num2str(h) ': EMG'])
+    
+    % Plotting FORCE signals
+    figure(2*h+1)
+    for i = 1:6
+        subplot(2,3,i)
+        plot(t1,FORCE_Test(i,:),'b');
+        hold on
+        plot(t2,XRecos(i+10,:),'r');
+    end
+    sgtitle(['H' num2str(h) ': FORCE'])
+end
 
 
 
