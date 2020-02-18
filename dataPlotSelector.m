@@ -1,8 +1,8 @@
 %% Generating a cell array containig the performance indexes corresponding to selected scenary
 % selResults has the following structure:
-% M cells, each one corresponds to a performance indexes, in this order:
+% P cells, each one corresponds to a performance indexes, in this order:
 %   MSE_emg; MSE_frc; RMSE_emg; RMSE_frc; R2_emg; R2_frc; [...stdIndexes] 
-% Each cell contains a 10xN array. The N methods are in this order:
+% Each cell contains a 10xM array. The M methods are in this order:
 %   LFR, NNMF, AE, DAE
 
 function selResults = dataPlotSelector(resStruct, single_multiple, train_test)
@@ -29,9 +29,12 @@ for pI = 1: perfNumber       % PERFORMANCE INDEXES LOOP
         data = fieldnames(resStruct.(methods{mI}).(fing{fingChoice}));
         dataAdd = length(data) -2; % is the number convMatrices and nets presents in the dataField 
         % Generating selResults
-        selResults{pI}(:,mI) = zeros(10,1) + resStruct.(methods{mI}).(fing{fingChoice}).(data{dataChoice+dataAdd}).(perfs{pI});
-        % The sum with zeros(10,1) is used to convert the scalar index of
-        % the LFR method to vectors.
+        if any(pI == [1 2 3]) && mI == 1 
+            selResults{pI}(:,mI) = zeros(10,1) + NaN;
+        else
+            selResults{pI}(:,mI) = zeros(10,1) + resStruct.(methods{mI}).(fing{fingChoice}).(data{dataChoice+dataAdd}).(perfs{pI});
+            % The sum with zeros(10,1) is used to convert the scalar index of the LFR method to vectors.
+        end
     end
 end
 
