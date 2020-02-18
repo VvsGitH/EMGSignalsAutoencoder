@@ -39,7 +39,7 @@ net.initFcn                     = 'initlay';    % Call layer specific initializa
 % Layers transfer functions
 net.layers{1}.transferFcn       = 'poslin';
 net.layers{2}.transferFcn       = 'purelin';
-net.layers{3}.transferFcn       = 'poslin';
+net.layers{3}.transferFcn       = 'purelin';
 
 % Divide function
 if nargin == 4
