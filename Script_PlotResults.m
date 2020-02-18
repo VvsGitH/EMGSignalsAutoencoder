@@ -13,6 +13,7 @@ load Data_fullResults
 selSbj = [4, 16, 17, 21, 33];
 
 %% PLOT MEAN PERFORMANCE GRAPHS
+close all
 fprintf('##### PLOTTING MEAN RESULTS #####\n');
 count = 1;
 sgtitleArray{1} = 'AVERAGE PERFOMANCE - SINGLE FINGER - TRAIN DATA';
@@ -29,24 +30,28 @@ for single_multiple = 0:1
         figure(count)
         sgtitle(sgtitleArray{count});
         titleArray = [{'EMG RMSE'},{'EMG R2'},{'FORCE RMSE'},{'FORCE R2'}];
-        labelArray = [{'mV'},{' '},{'N'},{' '}];
+        labelArray = [{'V'},{' '},{'N'},{' '}];
         for m = 1:4
             subplot(2,2,m)
-            p1 = bar(plotArray{m});
+            bar(plotArray{m});
             set(gca,'YGrid','on'), title(titleArray{m}),
             xlabel('Number of synergies'), ylabel(labelArray{m}),
             hold on
             for j = 1:barXgroup
                 x = (1:groupNumber) - groupwidth/2 + (2*j-1) * groupwidth / (2*barXgroup);
-                p2 = errorbar(x,plotArray{m}(:,j),plotArray{m+4}(:,j));
+                errorbar(x,plotArray{m}(:,j),plotArray{m+4}(:,j));
             end
-            legend(p1,{'LFR','NNMF','AE','DAE'},'NumColumns',2),
         end
+        legend({'LFR','NNMF','AE','DAE','LFR std','NNMF std','AE std','DAE std'}, ...
+            'NumColumns',4,'Position',[0.465 0.456 0.1 0.1],'Units','Normalized');
+        set(gcf, 'WindowState', 'maximized');
+        saveas(gcf,['./Figures/' sgtitleArray{count}],'jpeg')
         count = count +1;
     end
 end
 
 %% PLOT SINGLE SUBJECT PERFORMANCE GRAPHS
+close all
 fprintf('##### PLOTTING PER SUBJECT RESULTS #####\n');
 extCount = 1;
 for sbj = selSbj
@@ -65,14 +70,16 @@ for sbj = selSbj
             figure(extCount)
             sgtitle(sgtitleArray{intCount});
             titleArray = [{'EMG RMSE'},{'EMG R2'},{'FORCE RMSE'},{'FORCE R2'}];
-            labelArray = [{'mV'},{' '},{'N'},{' '}];
+            labelArray = [{'V'},{' '},{'N'},{' '}];
             for m = 1:4
                 subplot(2,2,m)
                 bar(plotArray{m});
                 set(gca,'YGrid','on'), title(titleArray{m}),
                 xlabel('Number of synergies'), ylabel(labelArray{m}),
-                legend({'LFR','NNMF','AE','DAE'},'NumColumns',2),
             end
+            legend({'LFR','NNMF','AE','DAE'},'NumColumns',2,'Position',[0.465 0.456 0.1 0.1],'Units','Normalized');
+            set(gcf, 'WindowState', 'maximized');
+            saveas(gcf,['./Figures/' sgtitleArray{intCount}],'jpeg')
             intCount = intCount +1;
             extCount = extCount +1;
         end
@@ -80,17 +87,29 @@ for sbj = selSbj
 end
 
 %% PLOTTING RECONSTRUCTED SIGNALS
+close all
+fprintf('##### PLOTTING RECONSTRUCTED SIGNALS #####\n');
 % 5 subjects
 % 1:10 synergies
 % 4 methods
 % single and multiple fingers
 % train and test dataset
 % 4 forces (no EMG)
+colorArray{1} = [0.4660 0.6740 0.1880]; % NinaPro
+colorArray{2} = [0 0.4470 0.7410];      % LFR
+colorArray{3} = [0.8500 0.3250 0.0980]; % NNMF
+colorArray{4} = [0.9290 0.6940 0.1250]; % AE
+colorArray{5} = [0.4940 0.1840 0.5560]; % DAE
+titleArray{1} = 'Index Finger Forces'; 
+titleArray{2} = 'Middle Finger Forces';
+titleArray{3} = 'Ring Finger Forces';
+titleArray{4} = 'Little Finger Forces';
+
 figNum = 1;
-for sbj = selSbj            % subjects
-    for s = 1:10            % synergies number
-        for scen = 1:4      % scenaries
-            for m = 0:4     % methods
+for sbj = 33                    % best subject
+    for s = 1:10                % synergies number
+        for scen = 2            % scenary: single finger - test data
+            for m = [0 1 4]     % methods: NinaPro, LFR, DAE
                 
                 if (scen == 1) || (scen == 3)
                     dataSet = sfDataSet{sbj};
@@ -98,18 +117,22 @@ for sbj = selSbj            % subjects
                 end
                 FORCE_Recos = methForce(dataSet, simResults{sbj}, m, s, scen);
                 figure(figNum)   
-                for i = 1:4
+                sgTitleArray = ['SBJ ',num2str(sbj),' RECOS FORCES - S ',num2str(s),' - SCEN ',num2str(scen)];
+                sgtitle(sgTitleArray)
+                for i = 1:4 % sensors
                     subplot(2,2,i)
-                    plot(FORCE_Recos(i,:)),
+                    plot(FORCE_Recos(i,:),'Color',colorArray{m+1},'LineWidth',1.1),
+                    axis tight
                     xlabel('samples'), ylabel('N'),
+                    grid on, title(titleArray{i}),
                     hold on
                 end
                 hold on
                 
             end
-            sgTitleArray = ['SBJ:',num2str(sbj),' - S:',num2str(s),' - Scenary:',num2str(scen)];
-            sgtitle(sgTitleArray)
-            legend({'NinaPro','LFR','NNMF','AE','DAE'},'NumColumns',2)
+            legend({'NinaPro','LFR','DAE'},'NumColumns',3,'Position',[0.465 0.456 0.1 0.1],'Units','Normalized');
+            set(gcf, 'WindowState', 'maximized');
+            saveas(gcf,['./Figures/' sgTitleArray],'jpeg')
             figNum = figNum +1;
         end
     end
