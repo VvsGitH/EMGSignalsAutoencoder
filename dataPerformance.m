@@ -21,5 +21,5 @@ avgTargets = mean(targetData, 2);
 avgTargetsMatr = avgTargets .*ones(1,size(targetData,2));
 SStot = sum(sum((targetData - avgTargetsMatr).^2));
 R2 = 1 - (SSres ./ SStot);
-end
 
+end

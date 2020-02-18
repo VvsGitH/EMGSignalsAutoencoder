@@ -49,4 +49,3 @@ net.trainParam.showWindow       = 1;
 net = configure(net,inputData, inputData);
 
 end
-

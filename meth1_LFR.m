@@ -1,3 +1,6 @@
+%% Linear Force Reconstruction Method
+% Linear Estimation of FORCE signals from EMG signals
+
 function LFRsim = meth1_LFR(EMG, FORCE, indVect)
 
 %% DATASET DIVISION
@@ -7,7 +10,8 @@ END = length(EMG);
 [EMG_Train, ~, EMG_Test]     = divideind(EMG, 1:TI-1, VI:END,  TI:VI-1);
 [FORCE_Train, ~, FORCE_Test] = divideind(FORCE, 1:TI-1, VI:END,  TI:VI-1);
 
-%% GRAM-SCHMIDT ORTOGONALIZATION ALOGORITH WITH COLUMN PIVOTING
+%% CALCULATION OF H MATRIX
+% GRAM-SCHMIDT ORTOGONALIZATION ALOGORITH WITH COLUMN PIVOTING
 H = FORCE_Train/EMG_Train;
 
 %% FORCE RECONSTRUCTION
@@ -34,4 +38,3 @@ LFRsim.Test.RMSE_frc  = rmse_ts;
 LFRsim.Test.R2_frc    = r2_ts;
 
 end
-

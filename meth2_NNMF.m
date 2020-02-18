@@ -1,3 +1,7 @@
+%% Non-Negative Matrix Factorization Method
+% Synergies based EMG factorization
+% Force recostruction with linear synergy based model Hc
+
 function NNMFsim = meth2_NNMF(EMG, FORCE, maxEMG, indVect)
 
 %% DATASET DIVISION
@@ -30,6 +34,7 @@ parfor h = 1:10
     EMG_Recos_ts = W*C_ts;
     
     %% FORCE RECONSTRUCTION
+    % Hc model
     H = FORCE_Train/C_tr;
     convMatrix{h,1} = H;
     FORCE_Recos_tr = H*C_tr;
@@ -81,4 +86,3 @@ NNMFsim.Test.RMSE_frc  = RMSE_frc_ts;
 NNMFsim.Test.R2_frc    = R2_frc_ts;
 
 end
-

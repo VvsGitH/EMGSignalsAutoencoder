@@ -71,4 +71,3 @@ net = configure(net,'outputs',inputData,1);
 net = configure(net,'outputs',outputData,2);
 
 end
-

@@ -1,3 +1,9 @@
+% This script  sets up and run a simulation loop for each one of the 
+% selected subjects. In each iterations the four methods are executed 
+% twice, once with the sfDataSet and once with the fullDataSet.
+% After the loop the results are saved in the simResults struct; also the 
+% script calculates the average results and saves them in avgResults.
+
 close all
 clearvars
 clc
@@ -50,7 +56,7 @@ for trSogg = selSbj
     TImf        = fullDataSet{trSogg}.testIndex; 
     VIsf        = sfDataSet{trSogg}.validIndex;
     VImf        = fullDataSet{trSogg}.validIndex; 
-    %% LFR METH OD
+    %% LFR METHOD
    if any(selector == 1)
     fprintf('   LFR: single fingers\n');
     LFRsims_sf{trSogg}  = meth1_LFR(EMGsf, FORCEsf, [TIsf, VIsf]);
@@ -82,6 +88,17 @@ for trSogg = selSbj
 end
 
 %% GENERATION OF SIMRESULT STRUCTURE
+% simResults is generated in this way:
+% simResults is a cell array, one cell per subjects;
+% in each cell is present a structure;
+% the structure has four levels:
+%   1. method: LFR, NNMF, AE, DAE
+%   2. dataset: SF (single finger), MF (full dataset)
+%   3.1 conversion matrices: [only inside LFR, NNMF, AE] H, W, Hc, Hae 
+%   3.2 test method: Train (test with train data), Test (test with test data)
+%   4. performance indexes: [only inside 3.2] MSE, RMSE, R2 for
+%                           emg and force
+fprintf('##### GENERATION OF SIMRESULT STRUCTURE #####\n');
 simResults = cell(40,1);
 for trSogg = selSbj
     simResults{trSogg}.LFR.SF  = LFRsims_sf{trSogg};
@@ -95,6 +112,13 @@ for trSogg = selSbj
 end
 
 %% GENERATING THE AVGRESULT STRUCTURE
+% avgResults is a structure with four levels:
+%   1. method: LFR, NNMF, AE, DAE
+%   2. dataset: SF (single finger), MF (full dataset)
+%   3. test method: Train (test with train data), Test (test with test data)
+%   4. performance indexes: avgMSE, avgRMSE, avgR2, stdMSE, stdRMSE, stdR2 
+%                           for both emg and forces
+fprintf('##### GENERATION OF AVGRESULT STRUCTURE #####\n');
 avgResults.LFR.SF  = dataSimResults(LFRsims_sf, selSbj);
 avgResults.LFR.MF  = dataSimResults(LFRsims_mf, selSbj);
 avgResults.NNMF.SF = dataSimResults(NNMFsims_sf, selSbj);

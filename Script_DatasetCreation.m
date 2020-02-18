@@ -1,3 +1,7 @@
+% This script does the preprocess of the ninapro data from the second
+% database and generates two datasets: one containing only single finger
+% movements and the other containing all the no-thumb movements.
+
 close all
 clearvars 
 clc
@@ -135,7 +139,8 @@ for s = 1:40
 end
 
 %% Reunification of the signal for the Single Finger Database
-movsf = [1,2,3,4];
+movsf = [1,2,3,4]; % single finger movements
+
 % Selecting the way the dataset will be divided
 trainRip = [1 3 5];     % Repetitions for the train set
 testRip = [2 6];        % Repetitions for the test set
@@ -177,7 +182,7 @@ for s = 1:40
 end
 
 %% Reunification of the signal for the Single and Multiple Finger Database
-% Same division as the precedent
+% Same division as the precedent but with all the no-thumb movements
 
 fullDataSet = cell(40,1);
 for s = 1:40

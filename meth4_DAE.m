@@ -1,3 +1,6 @@
+%% "Double AutoEncoder" Method
+% Custom double output shallow neural network for parallel EMG and FORCE recostruction 
+
 function DAEsim = meth4_DAE(EMG, FORCE, maxEMG, maxForce, indVect, maxEpochs)
 
 TI = indVect(1); VI = indVect(2);
@@ -12,17 +15,16 @@ R2_emg_tr   = zeros(10,1); R2_frc_tr   = zeros(10,1);
 MSE_emg_ts  = zeros(10,1); MSE_frc_ts  = zeros(10,1);
 RMSE_emg_ts = zeros(10,1); RMSE_frc_ts = zeros(10,1);
 R2_emg_ts   = zeros(10,1); R2_frc_ts   = zeros(10,1);
-trainedNet = cell(10,1);  trainingReport = cell(10,1);
+trainedNet = cell(10,1); 
 
 parfor h = 1:10
     
-    net = netDoubleAutoEncoder(h, EMG, FORCE, maxEpochs, indVect); % divideind
+    net = netDoubleAutoEncoder(h, EMG, FORCE, maxEpochs, indVect);
     
     %% TRAINING
     fprintf('       S%d: Training\n',h);
-    [trNet, tr] = train(net,EMG,[EMG; FORCE],'useParallel','no');
+    [trNet, ~] = train(net,EMG,[EMG; FORCE],'useParallel','no');
     trainedNet{h,1} = trNet;
-    trainingReport{h,1} = tr;
     
     %% SIMULATION
     fprintf('       S%d: Simulation\n',h);
@@ -34,7 +36,7 @@ parfor h = 1:10
     FORCE_Recos_ts = XRecos(11:14,:);
     
     %% PERFORMANCE
-    % Different normalization for output balance
+    % Calculating the normalization extremes used for EMG and FORCEs
     [r_emg, r_frc] = netDAEoutputNorm(EMG, FORCE);
     
     % Performance for the reconstruction of EMG signal
@@ -71,7 +73,6 @@ end
 
 %% SAVING
 DAEsim.trainedNet     = trainedNet;
-% DAEsim.trainingReport = trainingReport;
 DAEsim.Train.MSE_emg  = MSE_emg_tr;
 DAEsim.Train.RMSE_emg = RMSE_emg_tr;
 DAEsim.Train.R2_emg   = R2_emg_tr;
@@ -86,4 +87,3 @@ DAEsim.Test.RMSE_frc  = RMSE_frc_ts;
 DAEsim.Test.R2_frc    = R2_frc_ts;
 
 end
-

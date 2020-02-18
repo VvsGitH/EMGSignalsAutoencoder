@@ -1,3 +1,7 @@
+%% AutoEncoder neural network Method
+% EMG recostruction by neural network
+% FORCE estimation with linear synergy based model Hae
+
 function AEsim = meth3_AE(EMG, FORCE, maxEMG, indVect, maxEpochs)
 
 TI = indVect(1); VI = indVect(2);
@@ -12,18 +16,17 @@ R2_emg_tr   = zeros(10,1); R2_frc_tr   = zeros(10,1);
 MSE_emg_ts  = zeros(10,1); MSE_frc_ts  = zeros(10,1);
 RMSE_emg_ts = zeros(10,1); RMSE_frc_ts = zeros(10,1);
 R2_emg_ts   = zeros(10,1); R2_frc_ts   = zeros(10,1);
-trainedNet  = cell(10,1);  trainingReport = cell(10,1);
+trainedNet  = cell(10,1); 
 convMatrix  = cell(10,1);
 
 parfor h = 1:10
     
-    net = netAutoEncoder(h, EMG, maxEpochs, indVect); % divideind
+    net = netAutoEncoder(h, EMG, maxEpochs, indVect);
     
     %% TRAINING
     fprintf('       S%d: Training\n',h);
-    [trNet, tr] = train(net,EMG,EMG,'useParallel','no');
+    [trNet, ~] = train(net,EMG,EMG,'useParallel','no');
     trainedNet{h,1} = trNet;
-    trainingReport{h,1} = tr;
     
     %% SIMULATION
     fprintf('       S%d: Simulation\n',h);
@@ -70,7 +73,6 @@ end
 
 %% SAVING
 AEsim.trainedNet     = trainedNet;
-% AEsim.trainingReport = trainingReport;
 AEsim.convMatrix     = convMatrix;
 AEsim.Train.MSE_emg  = MSE_emg_tr;
 AEsim.Train.RMSE_emg = RMSE_emg_tr;
@@ -86,4 +88,3 @@ AEsim.Test.RMSE_frc  = RMSE_frc_ts;
 AEsim.Test.R2_frc    = R2_frc_ts;
 
 end
-
