@@ -2,9 +2,9 @@ Buongiorno
 Daniel & Roberto
 Papers
 NinaPro_DB2/*.mat
-Figures/*.jpeg
-Figures/*.fig
 Data_fullDataSet.mat
 Data_sfDataSet.mat
 *.asv
 *.log
+*.jpg
+*.fig
