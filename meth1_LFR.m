@@ -11,12 +11,12 @@ END = length(EMG);
 [FORCE_Train, ~, FORCE_Test] = divideind(FORCE, 1:TI-1, VI:END,  TI:VI-1);
 
 %% CALCULATION OF H MATRIX
-% GRAM-SCHMIDT ORTOGONALIZATION ALOGORITH WITH COLUMN PIVOTING
-H = FORCE_Train/EMG_Train;
+% Least Squares result (LQ)
+H = FORCE_Train*pinv(EMG_Train);    % EMG to force conversion matrix
 
 %% FORCE RECONSTRUCTION
-FORCE_Recos_tr = H*EMG_Train;
-FORCE_Recos_ts = H*EMG_Test;
+FORCE_Recos_tr = H*EMG_Train;   % Reconstruction of train data
+FORCE_Recos_ts = H*EMG_Test;    % Reconstruction of test data
 
 %% PERFORMANCE
 [mse_tr, rmse_tr, r2_tr] = dataPerformance(FORCE_Train, FORCE_Recos_tr);

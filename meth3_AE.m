@@ -30,17 +30,17 @@ parfor h = 1:10
     
     %% SIMULATION
     fprintf('       S%d: Simulation\n',h);
-    EMG_Recos_tr = trNet(EMG_Train,'useParallel','no');
-    EMG_Recos_ts = trNet(EMG_Test,'useParallel','no');
+    EMG_Recos_tr = trNet(EMG_Train,'useParallel','no'); % Recostruction of train EMG
+    EMG_Recos_ts = trNet(EMG_Test,'useParallel','no');  % Recostruction of test EMG
     
     %% FORCE RECONSTRUCTION
     inputWeigths = cell2mat(trNet.IW);
-    S_Train = poslin(inputWeigths*EMG_Train); % tf -> poslin
-    Hae = FORCE_Train*pinv(S_Train);
-    FORCE_Recos_tr = Hae*S_Train;
+    S_Train = poslin(inputWeigths*EMG_Train); % Train synergy activation matrix
+    Hae = FORCE_Train*pinv(S_Train);          % Synergies to force conversion matrix (LQ)
     convMatrix{h,1} = Hae;
-    S_Test = poslin(inputWeigths*EMG_Test); % tf -> poslin
-    FORCE_Recos_ts = Hae*S_Test;
+    FORCE_Recos_tr = Hae*S_Train;             % Recostruction of train forces
+    S_Test = poslin(inputWeigths*EMG_Test);   % Test synergy activation matrix
+    FORCE_Recos_ts = Hae*S_Test;              % Recostruction of train forces
     
     %% PERFORMANCE
     % Performance for the reconstruction of EMG signal

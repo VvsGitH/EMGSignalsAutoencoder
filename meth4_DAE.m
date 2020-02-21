@@ -29,11 +29,11 @@ parfor h = 1:10
     %% SIMULATION
     fprintf('       S%d: Simulation\n',h);
     XRecos = trNet(EMG_Train,'useParallel','no');
-    EMG_Recos_tr = XRecos(1:10,:);
-    FORCE_Recos_tr = XRecos(11:14,:);
+    EMG_Recos_tr = XRecos(1:10,:);      % Reconstruction of train EMG
+    FORCE_Recos_tr = XRecos(11:14,:);   % Reconstruction of train forces
     XRecos = trNet(EMG_Test,'useParallel','no');
-    EMG_Recos_ts = XRecos(1:10,:);
-    FORCE_Recos_ts = XRecos(11:14,:);
+    EMG_Recos_ts = XRecos(1:10,:);      % Reconstruction of test EMG
+    FORCE_Recos_ts = XRecos(11:14,:);   % Reconstruction of test forces
     
     %% PERFORMANCE
     % Calculating the normalization extremes used for EMG and FORCEs

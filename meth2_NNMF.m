@@ -29,16 +29,16 @@ parfor h = 1:10
     
     %% SIMULATION
     fprintf('       S%d: Simulation\n',h);
-    EMG_Recos_tr = W*C_tr;   
-    C_ts = pinv(W)*EMG_Test;
-    EMG_Recos_ts = W*C_ts;
+    EMG_Recos_tr = W*C_tr;   % Reconstruction of train EMG
+    C_ts = pinv(W)*EMG_Test; % Test synergies activation matrix (LQ)
+    EMG_Recos_ts = W*C_ts;   % Recostruction of test EMG
     
     %% FORCE RECONSTRUCTION
     % Hc model
-    H = FORCE_Train/C_tr;
+    H = FORCE_Train*pinv(C_tr); % Synergies to force conversion matrix (LQ)
     convMatrix{h,1} = H;
-    FORCE_Recos_tr = H*C_tr;
-    FORCE_Recos_ts = H*C_ts;
+    FORCE_Recos_tr = H*C_tr;    % Reconstruction of train forces
+    FORCE_Recos_ts = H*C_ts;    % Reconstruction of test forces
 
     %% PERFORMANCE
     % Performance for the reconstruction of EMG signal

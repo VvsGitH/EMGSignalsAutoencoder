@@ -57,7 +57,7 @@ net.performParam.regularization = 0;          % Minimize only error
 net.performParam.normalization  = 'none';     % Take the error as it is
 
 % Training Settings
-net.trainFcn                    = 'traingdx'; % Gradient Descent with adaptive learning rate (gradient derivative method)
+net.trainFcn                    = 'traingdx'; % Gradient descent w/momentum & adaptive lr backpropagation (gradient derivative method)
 % net.trainFcn                  = 'trainlm';  % Levenberg-Marquardt backpropagation (Jacobian derivative method)
 net.trainParam.epochs           = maxEpochs;
 net.trainParam.min_grad         = 0;
