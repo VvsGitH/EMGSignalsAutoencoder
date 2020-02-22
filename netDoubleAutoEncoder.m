@@ -62,7 +62,7 @@ net.trainFcn                    = 'traingdx'; % Gradient descent w/momentum & ad
 net.trainParam.epochs           = maxEpochs;
 net.trainParam.min_grad         = 0;
 net.trainParam.goal             = 1e-04;
-net.trainParam.max_fail         = 300;
+net.trainParam.max_fail         = 100;
 net.trainParam.showWindow       = 1;
 
 % Configuring net for input and output dimensions
