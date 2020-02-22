@@ -113,7 +113,7 @@ for sbj = selSbj % SUBJECT LOOP
 end
 
 %% PLOTTING RECONSTRUCTED SIGNALS
-% per subject, per synergies number plots with overlapping reconstructed
+% Per subject, per synergies number plots with overlapping reconstructed
 % force signals.
 % There are 200 total combinations of plots:
 %   5 subjects
@@ -136,9 +136,9 @@ titleArray{2} = 'Middle Finger Forces';
 titleArray{3} = 'Ring Finger Forces';
 titleArray{4} = 'Little Finger Forces';
 figNum = 1;
-for sbj = 33                    % SUBJECTS LOOP: 21 best sbj
+for sbj = selSbj                % SUBJECTS LOOP
     for s = 1:10                % SYNERGIES NUMBER LOOP
-        for scen = 2            % SCENARY LOOP: single fingers movements and test data
+        for scen = 4            % SCENARY LOOP: all movements and test data
             for m = [0 1 4]     % METHODS LOOP: NinaPro, LFR, DAE
                 % choosing the dataset based on the scenary
                 if (scen == 1) || (scen == 2)
