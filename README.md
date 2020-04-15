@@ -1,8 +1,7 @@
 # SYNERGY BASED EMG AND FORCE ESTIMATION WITH NEURAL NETWORKS
-----
-Student's project from Politecnico di Bari  
-Authors: Coscia Claudia, Paparella Santorsola VIto  
-Based on NINAPRO database 2
+> *Student's project from Politecnico di Bari  
+> Authors: Coscia Claudia, Paparella Santorsola VIto  
+> Based on NINAPRO database 2*
 
 ---
 
@@ -21,7 +20,6 @@ The results shows that the NNMF is the best method to reconstruct the EMG signal
 &nbsp;
 
 ## Git Folder Structure
-----
 ### Folders list:
 * Figures - in this folder will be contained all the jpg plots
 * NinaPro_DB2 - this folder MUST contain the second NinaPro database, sbj 1:40, ex 3
