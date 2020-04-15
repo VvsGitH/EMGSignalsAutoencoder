@@ -3,8 +3,6 @@
 > Authors: Coscia Claudia, Paparella Santorsola VIto  
 > Based on NINAPRO database 2*
 
----
-
 This project aims to obtain a good estimation of finger forces starting from emg signals.  
 It tests four different estimation methods, three of them being synergy based:  
   1. Linear force recostrcution from EMG.  
@@ -14,10 +12,6 @@ It tests four different estimation methods, three of them being synergy based:
     
 The results shows that the NNMF is the best method to reconstruct the EMG signals, while the 
 4th method is the best for the force reconstruction.
-
-&nbsp;
-
-&nbsp;
 
 ## Git Folder Structure
 ### Folders list:
