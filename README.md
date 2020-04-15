@@ -1,6 +1,7 @@
 # SYNERGY BASED EMG AND FORCE ESTIMATION WITH NEURAL NETWORKS
 > *Student's project from Politecnico di Bari  
-> Authors: Coscia Claudia, Paparella Santorsola VIto  
+> Authors: Coscia Claudia, Paparella Santorsola Vito  
+> Teachers: Bevilacqua Vitoantonio, Buongiorno Domenico  
 > Based on NINAPRO database 2*
 
 This project aims to obtain a good estimation of finger forces starting from emg signals.  
